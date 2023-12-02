@@ -4,7 +4,7 @@
 #include <stddef.h>
 
 #define MSTR_INIT_CAP 8
-#define MSTR_EXPAN_RATION 2
+#define MSTR_EXPAN_RATIO 2
 
 typedef struct
 {
