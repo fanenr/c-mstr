@@ -46,7 +46,7 @@ mstr *mstr_cat_char(mstr *dest, char src)
     if (dest->cap < dest->len + 2) {
         size_t cap = MSTR_INIT_CAP;
         if (dest->cap > 0)
-            cap = dest->cap * MSTR_EXPAN_RATION;
+            cap = dest->cap * MSTR_EXPAN_RATIO;
         if (mstr_reserve(dest, cap) != dest)
             return NULL;
     }
