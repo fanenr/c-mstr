@@ -17,12 +17,7 @@ $(objects): %.o: %.c %.h
 test: $(objects)
 	cd tests && make
 
-.PHONY: sample
-sample: slist.o stack.o
-	cd samples && make
-
 .PHONY: clean
 clean:
 	-rm -f *.o
 	-cd tests && make clean
-	-cd samples && make clean
