@@ -1,3 +1,5 @@
+/* mstr */
+
 #ifndef MSTR_H
 #define MSTR_H
 
@@ -37,14 +39,16 @@ extern mstr *mstr_assign_char(mstr *dest, char src);
 extern mstr *mstr_assign_cstr(mstr *dest, const char *src);
 extern mstr *mstr_assign_mstr(mstr *dest, const mstr *src);
 
-static inline mstr mstr_new(void)
+static inline mstr
+mstr_new(void)
 {
     mstr str;
     mstr_init(&str);
     return str;
 }
 
-static inline mstr mstr_new_cap(size_t cap)
+static inline mstr
+mstr_new_cap(size_t cap)
 {
     mstr str;
     mstr_init(&str);
@@ -52,7 +56,8 @@ static inline mstr mstr_new_cap(size_t cap)
     return str;
 }
 
-static inline mstr mstr_new_char(char src)
+static inline mstr
+mstr_new_char(char src)
 {
     mstr str;
     mstr_init(&str);
@@ -60,7 +65,8 @@ static inline mstr mstr_new_char(char src)
     return str;
 }
 
-static inline mstr mstr_new_cstr(const char *src)
+static inline mstr
+mstr_new_cstr(const char *src)
 {
     mstr str;
     mstr_init(&str);

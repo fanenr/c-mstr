@@ -8,7 +8,8 @@ static void test_cat_cstr(void);
 static void test_assign_cstr(void);
 static void test_free(void);
 
-int main(void)
+int
+main(void)
 {
     test_init();
     test_reserve();
@@ -19,7 +20,8 @@ int main(void)
     return 0;
 }
 
-static void test_init(void)
+static void
+test_init(void)
 {
     mstr str1 = mstr_new();
 
@@ -30,7 +32,8 @@ static void test_init(void)
     return;
 }
 
-static void test_reserve(void)
+static void
+test_reserve(void)
 {
     mstr str1 = mstr_new();
     mstr_reserve(&str1, MSTR_INIT_CAP);
@@ -44,7 +47,8 @@ static void test_reserve(void)
     return;
 }
 
-static void test_cat_char(void)
+static void
+test_cat_char(void)
 {
     mstr str1 = mstr_new();
     for (char ch = 'a'; ch <= 'z'; ch++)
@@ -68,10 +72,10 @@ static void test_cat_char(void)
     return;
 }
 
-static void test_cat_cstr(void)
+static void
+test_cat_cstr(void)
 {
     mstr str1 = mstr_new();
-
     mstr_cat_cstr(&str1, "abc");
     mstr_cat_cstr(&str1, "def");
 
@@ -92,7 +96,8 @@ static void test_cat_cstr(void)
     return;
 }
 
-static void test_assign_cstr(void)
+static void
+test_assign_cstr(void)
 {
     mstr str1 = mstr_new();
     mstr_assign_cstr(&str1, "abcdef");
@@ -119,10 +124,10 @@ static void test_assign_cstr(void)
     return;
 }
 
-static void test_free(void)
+static void
+test_free(void)
 {
     mstr str1 = mstr_new();
-
     mstr_free(&str1);
     return;
 }
