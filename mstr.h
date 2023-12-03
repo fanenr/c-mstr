@@ -28,16 +28,20 @@ extern size_t mstr_cap(const mstr *str);
 extern size_t mstr_len(const mstr *str);
 extern const char *mstr_data(const mstr *str);
 
-extern char *mstr_move_cstr(mstr *str);
+extern char *mstr_unwrap(mstr *str);
+extern mstr *mstr_move_cstr(mstr *dest, char *src);
 extern mstr *mstr_move_mstr(mstr *dest, mstr *src);
+extern mstr *mstr_swap_mstr(mstr *dest, mstr *src);
 
 extern mstr *mstr_cat_char(mstr *dest, char src);
 extern mstr *mstr_cat_cstr(mstr *dest, const char *src);
 extern mstr *mstr_cat_mstr(mstr *dest, const mstr *src);
+extern mstr *mstr_cat_byte(mstr *dest, const char *src, size_t slen);
 
 extern mstr *mstr_assign_char(mstr *dest, char src);
 extern mstr *mstr_assign_cstr(mstr *dest, const char *src);
 extern mstr *mstr_assign_mstr(mstr *dest, const mstr *src);
+extern mstr *mstr_assign_byte(mstr *dest, const char *src, size_t slen);
 
 static inline mstr
 mstr_new(void)
