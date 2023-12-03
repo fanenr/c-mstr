@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-mstr *mstr_init(mstr *str)
+mstr *
+mstr_init(mstr *str)
 {
     if (str == NULL)
         return NULL;
@@ -12,22 +13,26 @@ mstr *mstr_init(mstr *str)
     return str;
 }
 
-size_t mstr_cap(const mstr *str)
+size_t
+mstr_cap(const mstr *str)
 {
     return str == NULL ? 0 : str->cap;
 }
 
-size_t mstr_len(const mstr *str)
+size_t
+mstr_len(const mstr *str)
 {
     return str == NULL ? 0 : str->len;
 }
 
-const char *mstr_data(const mstr *str)
+const char *
+mstr_data(const mstr *str)
 {
     return str == NULL ? NULL : str->data;
 }
 
-char *mstr_move_cstr(mstr *str)
+char *
+mstr_move_cstr(mstr *str)
 {
     if (str == NULL)
         return NULL;
@@ -39,7 +44,8 @@ char *mstr_move_cstr(mstr *str)
     return cstr;
 }
 
-mstr *mstr_move_mstr(mstr *dest, mstr *src)
+mstr *
+mstr_move_mstr(mstr *dest, mstr *src)
 {
     if (dest == NULL)
         return NULL;
@@ -55,7 +61,8 @@ mstr *mstr_move_mstr(mstr *dest, mstr *src)
     return dest;
 }
 
-mstr *mstr_reserve(mstr *dest, size_t cap)
+mstr *
+mstr_reserve(mstr *dest, size_t cap)
 {
     if (dest == NULL || cap <= dest->cap)
         return dest;
@@ -69,14 +76,15 @@ mstr *mstr_reserve(mstr *dest, size_t cap)
     return dest;
 }
 
-mstr *mstr_cat_char(mstr *dest, char src)
+mstr *
+mstr_cat_char(mstr *dest, char src)
 {
     if (dest == NULL || src == '\0')
         return dest;
 
     if (dest->cap < dest->len + 2) {
-        size_t cap =
-            dest->cap > 0 ? dest->cap * MSTR_EXPAN_RATIO : MSTR_INIT_CAP;
+        size_t cap
+            = dest->cap > 0 ? dest->cap * MSTR_EXPAN_RATIO : MSTR_INIT_CAP;
         if (mstr_reserve(dest, cap) != dest) /* allocate failed */
             return NULL;
     }
@@ -86,7 +94,8 @@ mstr *mstr_cat_char(mstr *dest, char src)
     return dest;
 }
 
-mstr *mstr_cat_cstr(mstr *dest, const char *src)
+mstr *
+mstr_cat_cstr(mstr *dest, const char *src)
 {
     if (dest == NULL || src == NULL || *src == '\0')
         return dest;
@@ -109,14 +118,16 @@ mstr *mstr_cat_cstr(mstr *dest, const char *src)
     return dest;
 }
 
-mstr *mstr_cat_mstr(mstr *dest, const mstr *src)
+mstr *
+mstr_cat_mstr(mstr *dest, const mstr *src)
 {
     if (dest == NULL || src == NULL)
         return dest;
     return mstr_cat_cstr(dest, src->data);
 }
 
-mstr *mstr_assign_char(mstr *dest, char src)
+mstr *
+mstr_assign_char(mstr *dest, char src)
 {
     if (dest == NULL || src == '\0')
         return mstr_free(dest);
@@ -139,7 +150,8 @@ mstr *mstr_assign_char(mstr *dest, char src)
     return dest;
 }
 
-mstr *mstr_assign_cstr(mstr *dest, const char *src)
+mstr *
+mstr_assign_cstr(mstr *dest, const char *src)
 {
     if (dest == NULL || src == NULL || *src == '\0')
         return mstr_free(dest);
@@ -166,7 +178,8 @@ mstr *mstr_assign_cstr(mstr *dest, const char *src)
     return dest;
 }
 
-mstr *mstr_assign_mstr(mstr *dest, const mstr *src)
+mstr *
+mstr_assign_mstr(mstr *dest, const mstr *src)
 {
     if (dest == NULL || src == NULL)
         return mstr_free(dest);
@@ -174,7 +187,8 @@ mstr *mstr_assign_mstr(mstr *dest, const mstr *src)
     return mstr_assign_cstr(dest, src->data);
 }
 
-mstr *mstr_free(mstr *str)
+mstr *
+mstr_free(mstr *str)
 {
     if (str == NULL)
         return NULL;
