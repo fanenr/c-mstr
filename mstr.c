@@ -32,16 +32,29 @@ mstr_data(const mstr *str)
 }
 
 char *
-mstr_move_cstr(mstr *str)
+mstr_unwrap(mstr *str)
 {
     if (str == NULL)
         return NULL;
 
-    char *cstr = str->data;
-    if (mstr_init(str) != str) /* init failed */
+    char *data = str->data;
+    mstr_init(str);
+    return data;
+}
+
+mstr *
+mstr_move_cstr(mstr *dest, char *src)
+{
+    if (dest == NULL || src == NULL)
         return NULL;
 
-    return cstr;
+    size_t len = strlen(src);
+    size_t cap = len + 1;
+
+    dest->data = src;
+    dest->len = len;
+    dest->cap = cap;
+    return dest;
 }
 
 mstr *
@@ -58,6 +71,18 @@ mstr_move_mstr(mstr *dest, mstr *src)
 
     *dest = *src;
     mstr_init(src);
+    return dest;
+}
+
+mstr *
+mstr_swap_mstr(mstr *dest, mstr *src)
+{
+    if (dest == NULL || src == NULL)
+        return NULL;
+
+    mstr copy = *dest;
+    *dest = *src;
+    *src = copy;
     return dest;
 }
 
@@ -101,19 +126,19 @@ mstr_cat_cstr(mstr *dest, const char *src)
         return dest;
 
     size_t cap = dest->cap;
-    size_t dest_len = dest->len;
-    size_t src_len = strlen(src);
-    if (cap < dest_len + src_len + 1) {
-        cap = cap > 0 ? dest_len + src_len + 1 : src_len + 1;
+    size_t dlen = dest->len;
+    size_t slen = strlen(src);
+    if (cap < dlen + slen + 1) {
+        cap = cap > 0 ? dlen + slen + 1 : slen + 1;
         if (mstr_reserve(dest, cap) != dest) /* allocate failed */
             return NULL;
     }
 
-    char *pos = dest->data + dest_len;
-    if (memmove(pos, src, src_len) != pos) /* copy failed */
+    char *pos = dest->data + dlen;
+    if (memmove(pos, src, slen) != pos) /* copy failed */
         return NULL;
 
-    dest->len += src_len;
+    dest->len += slen;
     dest->data[dest->len] = '\0';
     return dest;
 }
@@ -124,6 +149,30 @@ mstr_cat_mstr(mstr *dest, const mstr *src)
     if (dest == NULL || src == NULL)
         return dest;
     return mstr_cat_cstr(dest, src->data);
+}
+
+mstr *
+mstr_cat_byte(mstr *dest, const char *src, size_t slen)
+{
+    if (dest == NULL || src == NULL || *src == '\0' || slen == 0)
+        return dest;
+
+    size_t cap = dest->cap;
+    size_t dlen = dest->len;
+    slen = src[slen - 1] == '\0' ? slen - 1 : slen;
+    if (cap < dlen + slen + 1) {
+        cap = cap > 0 ? dlen + slen + 1 : slen + 1;
+        if (mstr_reserve(dest, cap) != dest) /* allocate failed */
+            return NULL;
+    }
+
+    char *pos = dest->data + dlen;
+    if (memmove(pos, src, slen) != pos) /* copy failed */
+        return NULL;
+
+    dest->len += slen;
+    dest->data[dest->len] = '\0';
+    return dest;
 }
 
 mstr *
@@ -156,24 +205,26 @@ mstr_assign_cstr(mstr *dest, const char *src)
     if (dest == NULL || src == NULL || *src == '\0')
         return mstr_free(dest);
 
-    size_t src_len = strlen(src);
-    size_t cap = src_len + 1 < MSTR_INIT_CAP ? MSTR_INIT_CAP : src_len + 1;
+    size_t slen = strlen(src);
+    size_t cap = slen + 1 < MSTR_INIT_CAP ? MSTR_INIT_CAP : slen + 1;
 
     char *data = malloc(cap);
     if (data == NULL) /* allocate failed */
         return NULL;
 
-    data[src_len] = '\0';
-    if (memmove(data, src, cap) != data) { /* copy failed */
+    data[slen] = '\0';
+    if (memmove(data, src, slen) != data) { /* copy failed */
         free(data);
         return NULL;
     }
 
-    if (mstr_free(dest) != dest) /* free failed */
+    if (mstr_free(dest) != dest) { /* free failed */
+        free(data);
         return NULL;
+    }
 
-    dest->len = src_len;
     dest->data = data;
+    dest->len = slen;
     dest->cap = cap;
     return dest;
 }
@@ -185,6 +236,36 @@ mstr_assign_mstr(mstr *dest, const mstr *src)
         return mstr_free(dest);
 
     return mstr_assign_cstr(dest, src->data);
+}
+
+mstr *
+mstr_assign_byte(mstr *dest, const char *src, size_t slen)
+{
+    if (dest == NULL || src == NULL || *src == '\0' || slen == 0)
+        return mstr_free(dest);
+
+    slen = src[slen - 1] == '\0' ? slen - 1 : slen;
+    size_t cap = slen + 1 < MSTR_INIT_CAP ? MSTR_INIT_CAP : slen + 1;
+
+    char *data = malloc(cap);
+    if (data == NULL) /* allocate failed */
+        return NULL;
+
+    data[slen] = '\0';
+    if (memmove(data, src, slen) != data) { /* copy failed */
+        free(data);
+        return NULL;
+    }
+
+    if (mstr_free(dest) != dest) { /* free failed */
+        free(data);
+        return NULL;
+    }
+
+    dest->data = data;
+    dest->len = slen;
+    dest->cap = cap;
+    return dest;
 }
 
 mstr *
