@@ -21,8 +21,7 @@ int main(void)
 
 static void test_init(void)
 {
-    mstr str1;
-    mstr_init(&str1);
+    mstr str1 = mstr_new();
 
     assert(str1.len == 0);
     assert(str1.cap == 0);
@@ -33,8 +32,7 @@ static void test_init(void)
 
 static void test_reserve(void)
 {
-    mstr str1;
-    mstr_init(&str1);
+    mstr str1 = mstr_new();
     mstr_reserve(&str1, MSTR_INIT_CAP);
 
     assert(mstr_cap(&str1) == MSTR_INIT_CAP);
@@ -48,9 +46,7 @@ static void test_reserve(void)
 
 static void test_cat_char(void)
 {
-    mstr str1;
-    mstr_init(&str1);
-
+    mstr str1 = mstr_new();
     for (char ch = 'a'; ch <= 'z'; ch++)
         assert(mstr_cat_char(&str1, ch) == &str1);
 
@@ -74,8 +70,7 @@ static void test_cat_char(void)
 
 static void test_cat_cstr(void)
 {
-    mstr str1;
-    mstr_init(&str1);
+    mstr str1 = mstr_new();
 
     mstr_cat_cstr(&str1, "abc");
     mstr_cat_cstr(&str1, "def");
@@ -99,13 +94,11 @@ static void test_cat_cstr(void)
 
 static void test_assign_cstr(void)
 {
-    mstr str1;
-    mstr_init(&str1);
-
+    mstr str1 = mstr_new();
     mstr_assign_cstr(&str1, "abcdef");
 
     assert(str1.len == 6);
-    assert(str1.cap == 7);
+    assert(str1.cap == MSTR_INIT_CAP);
 
     /* assign NULL to str1 */
     mstr_assign_cstr(&str1, NULL);
@@ -128,8 +121,7 @@ static void test_assign_cstr(void)
 
 static void test_free(void)
 {
-    mstr str1;
-    mstr_init(&str1);
+    mstr str1 = mstr_new();
 
     mstr_free(&str1);
     return;
