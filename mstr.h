@@ -23,6 +23,7 @@ static inline mstr mstr_new(void);
 static inline mstr mstr_new_cap(size_t cap);
 static inline mstr mstr_new_char(char src);
 static inline mstr mstr_new_cstr(const char *src);
+static inline mstr mstr_new_byte(const char *src, size_t slen);
 
 extern size_t mstr_cap(const mstr *str);
 extern size_t mstr_len(const mstr *str);
@@ -75,6 +76,15 @@ mstr_new_cstr(const char *src)
     mstr str;
     mstr_init(&str);
     mstr_assign_cstr(&str, src);
+    return str;
+}
+
+static inline mstr
+mstr_new_byte(const char *src, size_t slen)
+{
+    mstr str;
+    mstr_init(&str);
+    mstr_assign_byte(&str, src, slen);
     return str;
 }
 
