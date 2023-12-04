@@ -13,24 +13,6 @@ mstr_init(mstr *str)
     return str;
 }
 
-size_t
-mstr_cap(const mstr *str)
-{
-    return str == NULL ? 0 : str->cap;
-}
-
-size_t
-mstr_len(const mstr *str)
-{
-    return str == NULL ? 0 : str->len;
-}
-
-const char *
-mstr_data(const mstr *str)
-{
-    return str == NULL ? NULL : str->data;
-}
-
 char *
 mstr_unwrap(mstr *str)
 {
@@ -275,4 +257,36 @@ mstr_free(mstr *str)
         return NULL;
     free(str->data);
     return mstr_init(str);
+}
+
+extern mstr *
+mstr_remove_from(mstr *dest, size_t spos, size_t len)
+{
+    if (dest == NULL || len == 0 || spos >= dest->len)
+        return dest;
+
+    size_t dlen = dest->len;
+    if (spos + len >= dlen - 1) {
+        dest->data[spos] = '\0';
+        dest->len = spos;
+        return dest;
+    }
+
+    size_t clen = dlen - spos - len;
+    char *st = dest->data + spos;
+    char *ed = st + len;
+    if (memmove(st, ed, clen) != st)
+        return NULL;
+
+    dest->data[spos + clen] = '\0';
+    dest->len -= len;
+    return dest;
+}
+
+extern mstr *
+mstr_remove_range(mstr *dest, size_t spos, size_t epos)
+{
+    if (dest == NULL || epos < spos)
+        return dest;
+    return mstr_remove_from(dest, spos, epos - spos + 1);
 }
