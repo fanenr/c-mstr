@@ -25,9 +25,9 @@ static inline mstr mstr_new_char(char src);
 static inline mstr mstr_new_cstr(const char *src);
 static inline mstr mstr_new_byte(const char *src, size_t slen);
 
-extern size_t mstr_cap(const mstr *str);
-extern size_t mstr_len(const mstr *str);
-extern const char *mstr_data(const mstr *str);
+static inline size_t mstr_cap(const mstr *str);
+static inline size_t mstr_len(const mstr *str);
+static inline const char *mstr_data(const mstr *str);
 
 extern char *mstr_unwrap(mstr *str);
 extern mstr *mstr_move_cstr(mstr *dest, char *src);
@@ -43,6 +43,9 @@ extern mstr *mstr_assign_char(mstr *dest, char src);
 extern mstr *mstr_assign_cstr(mstr *dest, const char *src);
 extern mstr *mstr_assign_mstr(mstr *dest, const mstr *src);
 extern mstr *mstr_assign_byte(mstr *dest, const char *src, size_t slen);
+
+extern mstr *mstr_remove_from(mstr *dest, size_t spos, size_t len);
+extern mstr *mstr_remove_range(mstr *dest, size_t spos, size_t epos);
 
 static inline mstr
 mstr_new(void)
@@ -86,6 +89,24 @@ mstr_new_byte(const char *src, size_t slen)
     mstr_init(&str);
     mstr_assign_byte(&str, src, slen);
     return str;
+}
+
+static inline size_t
+mstr_cap(const mstr *str)
+{
+    return str == NULL ? 0 : str->cap;
+}
+
+static inline size_t
+mstr_len(const mstr *str)
+{
+    return str == NULL ? 0 : str->len;
+}
+
+static inline const char *
+mstr_data(const mstr *str)
+{
+    return str == NULL ? NULL : str->data;
 }
 
 #endif
