@@ -259,7 +259,7 @@ mstr_free(mstr *str)
     return mstr_init(str);
 }
 
-extern mstr *
+mstr *
 mstr_remove_from(mstr *dest, size_t spos, size_t len)
 {
     if (dest == NULL || len == 0 || spos >= dest->len)
@@ -283,10 +283,30 @@ mstr_remove_from(mstr *dest, size_t spos, size_t len)
     return dest;
 }
 
-extern mstr *
+mstr *
 mstr_remove_range(mstr *dest, size_t spos, size_t epos)
 {
-    if (dest == NULL || epos < spos)
+    if (dest == NULL || spos > epos)
         return dest;
     return mstr_remove_from(dest, spos, epos - spos + 1);
+}
+
+mstr
+mstr_sub_from(mstr *dest, size_t spos, size_t len)
+{
+    if (dest == NULL || len == 0 || spos >= dest->len)
+        return mstr_new();
+
+    if (spos + len >= dest->len)
+        return mstr_new_byte(&dest->data[spos], dest->len - spos);
+
+    return mstr_new_byte(&dest->data[spos], len);
+}
+
+mstr
+mstr_sub_range(mstr *dest, size_t spos, size_t epos)
+{
+    if (dest == NULL || spos > epos)
+        return mstr_new();
+    return mstr_sub_from(dest, spos, epos - spos + 1);
 }

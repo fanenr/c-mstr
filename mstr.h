@@ -47,6 +47,11 @@ extern mstr *mstr_assign_byte(mstr *dest, const char *src, size_t slen);
 extern mstr *mstr_remove_from(mstr *dest, size_t spos, size_t len);
 extern mstr *mstr_remove_range(mstr *dest, size_t spos, size_t epos);
 
+extern mstr mstr_sub_from(mstr *dest, size_t spos, size_t len)
+    __attribute__((warn_unused_result));
+extern mstr mstr_sub_range(mstr *dest, size_t spos, size_t epos)
+    __attribute__((warn_unused_result));
+
 static inline mstr
 mstr_new(void)
 {
