@@ -310,3 +310,43 @@ mstr_sub_range(mstr *dest, size_t spos, size_t epos)
         return mstr_new();
     return mstr_sub_from(dest, spos, epos - spos + 1);
 }
+
+int
+mstr_cmp_cstr(mstr *lhs, const char *rhs)
+{
+    if (lhs == NULL && rhs == NULL)
+        return MSTR_CMP_EQ;
+    if (lhs == NULL) {
+        if (*rhs == '\0')
+            return MSTR_CMP_EQ;
+        else
+            return MSTR_CMP_LT;
+    }
+    if (rhs == NULL) {
+        if (lhs->len == 0)
+            return MSTR_CMP_EQ;
+        else
+            return MSTR_CMP_GT;
+    }
+    return strcmp(lhs->data, rhs);
+}
+
+int
+mstr_cmp_mstr(mstr *lhs, mstr *rhs)
+{
+    if (lhs == NULL && rhs == NULL)
+        return MSTR_CMP_EQ;
+    if (lhs == NULL) {
+        if (rhs->len == 0)
+            return MSTR_CMP_EQ;
+        else
+            return MSTR_CMP_LT;
+    }
+    if (rhs == NULL) {
+        if (lhs->len == 0)
+            return MSTR_CMP_EQ;
+        else
+            return MSTR_CMP_GT;
+    }
+    return strcmp(lhs->data, rhs->data);
+}

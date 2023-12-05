@@ -52,6 +52,13 @@ extern mstr mstr_sub_from(mstr *dest, size_t spos, size_t len)
 extern mstr mstr_sub_range(mstr *dest, size_t spos, size_t epos)
     __attribute__((warn_unused_result));
 
+#define MSTR_CMP_EQ 0
+#define MSTR_CMP_GT 1
+#define MSTR_CMP_LT -1
+
+extern int mstr_cmp_cstr(mstr *lhs, const char *rhs);
+extern int mstr_cmp_mstr(mstr *lhs, mstr *rhs);
+
 static inline mstr
 mstr_new(void)
 {
