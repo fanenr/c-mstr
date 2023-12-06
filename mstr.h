@@ -5,7 +5,7 @@
 
 #include <stddef.h>
 
-#define MSTR_INIT_CAP 8
+#define MSTR_INIT_CAP    8
 #define MSTR_EXPAN_RATIO 2
 
 typedef struct
@@ -47,17 +47,17 @@ extern mstr *mstr_assign_byte(mstr *dest, const char *src, size_t slen);
 extern mstr *mstr_remove_from(mstr *dest, size_t spos, size_t len);
 extern mstr *mstr_remove_range(mstr *dest, size_t spos, size_t epos);
 
-extern mstr mstr_sub_from(mstr *dest, size_t spos, size_t len)
+extern mstr mstr_sub_from(const mstr *dest, size_t spos, size_t len)
     __attribute__((warn_unused_result));
-extern mstr mstr_sub_range(mstr *dest, size_t spos, size_t epos)
+extern mstr mstr_sub_range(const mstr *dest, size_t spos, size_t epos)
     __attribute__((warn_unused_result));
 
 #define MSTR_CMP_EQ 0
 #define MSTR_CMP_GT 1
 #define MSTR_CMP_LT -1
 
-extern int mstr_cmp_cstr(mstr *lhs, const char *rhs);
-extern int mstr_cmp_mstr(mstr *lhs, mstr *rhs);
+extern int mstr_cmp_cstr(const mstr *lhs, const char *rhs);
+extern int mstr_cmp_mstr(const mstr *lhs, const mstr *rhs);
 
 static inline mstr
 mstr_new(void)

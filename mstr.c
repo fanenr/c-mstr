@@ -292,7 +292,7 @@ mstr_remove_range(mstr *dest, size_t spos, size_t epos)
 }
 
 mstr
-mstr_sub_from(mstr *dest, size_t spos, size_t len)
+mstr_sub_from(const mstr *dest, size_t spos, size_t len)
 {
     if (dest == NULL || len == 0 || spos >= dest->len)
         return mstr_new();
@@ -304,7 +304,7 @@ mstr_sub_from(mstr *dest, size_t spos, size_t len)
 }
 
 mstr
-mstr_sub_range(mstr *dest, size_t spos, size_t epos)
+mstr_sub_range(const mstr *dest, size_t spos, size_t epos)
 {
     if (dest == NULL || spos > epos)
         return mstr_new();
@@ -312,7 +312,7 @@ mstr_sub_range(mstr *dest, size_t spos, size_t epos)
 }
 
 int
-mstr_cmp_cstr(mstr *lhs, const char *rhs)
+mstr_cmp_cstr(const mstr *lhs, const char *rhs)
 {
     if (lhs == NULL && rhs == NULL)
         return MSTR_CMP_EQ;
@@ -332,7 +332,7 @@ mstr_cmp_cstr(mstr *lhs, const char *rhs)
 }
 
 int
-mstr_cmp_mstr(mstr *lhs, mstr *rhs)
+mstr_cmp_mstr(const mstr *lhs, const mstr *rhs)
 {
     if (lhs == NULL && rhs == NULL)
         return MSTR_CMP_EQ;
