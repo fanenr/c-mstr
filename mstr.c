@@ -128,9 +128,9 @@ mstr_cat_cstr(mstr *dest, const char *src)
 mstr *
 mstr_cat_mstr(mstr *dest, const mstr *src)
 {
-    if (dest == NULL || src == NULL)
+    if (dest == NULL || src == NULL || src->len == 0)
         return dest;
-    return mstr_cat_cstr(dest, src->data);
+    return mstr_cat_byte(dest, src->data, src->len);
 }
 
 mstr *
@@ -214,10 +214,10 @@ mstr_assign_cstr(mstr *dest, const char *src)
 mstr *
 mstr_assign_mstr(mstr *dest, const mstr *src)
 {
-    if (dest == NULL || src == NULL)
+    if (dest == NULL || src == NULL || src->len == 0)
         return mstr_free(dest);
 
-    return mstr_assign_cstr(dest, src->data);
+    return mstr_assign_byte(dest, src->data, src->len);
 }
 
 mstr *
