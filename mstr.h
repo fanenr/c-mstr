@@ -29,7 +29,7 @@ static inline size_t mstr_cap(const mstr *str);
 static inline size_t mstr_len(const mstr *str);
 static inline const char *mstr_data(const mstr *str);
 
-extern char *mstr_unwrap(mstr *str);
+extern char *mstr_release(mstr *str);
 extern mstr *mstr_move_cstr(mstr *dest, char *src);
 extern mstr *mstr_move_mstr(mstr *dest, mstr *src);
 extern mstr *mstr_swap_mstr(mstr *dest, mstr *src);
