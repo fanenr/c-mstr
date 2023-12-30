@@ -14,7 +14,7 @@ mstr_init(mstr *str)
 }
 
 char *
-mstr_unwrap(mstr *str)
+mstr_release(mstr *str)
 {
     if (str == NULL)
         return NULL;
