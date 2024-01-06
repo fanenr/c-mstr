@@ -316,18 +316,21 @@ mstr_cmp_cstr(const mstr *lhs, const char *rhs)
 {
     if (lhs == NULL && rhs == NULL)
         return MSTR_CMP_EQ;
+
     if (lhs == NULL) {
         if (*rhs == '\0')
             return MSTR_CMP_EQ;
         else
             return MSTR_CMP_LT;
     }
+
     if (rhs == NULL) {
         if (lhs->len == 0)
             return MSTR_CMP_EQ;
         else
             return MSTR_CMP_GT;
     }
+
     return strcmp(lhs->data, rhs);
 }
 
@@ -336,17 +339,61 @@ mstr_cmp_mstr(const mstr *lhs, const mstr *rhs)
 {
     if (lhs == NULL && rhs == NULL)
         return MSTR_CMP_EQ;
+
     if (lhs == NULL) {
         if (rhs->len == 0)
             return MSTR_CMP_EQ;
         else
             return MSTR_CMP_LT;
     }
+
     if (rhs == NULL) {
         if (lhs->len == 0)
             return MSTR_CMP_EQ;
         else
             return MSTR_CMP_GT;
     }
+
     return strcmp(lhs->data, rhs->data);
+}
+
+mstr_view *
+mstr_view_init(mstr_view *view)
+{
+    if (view == NULL)
+        return NULL;
+
+    view->len = 0;
+    view->data = NULL;
+    return view;
+}
+
+mstr_view *
+mstr_view_bind_cstr(mstr_view *view, const char *src)
+{
+    if (view == NULL || src == NULL)
+        return NULL;
+
+    view->data = src;
+    view->len = strlen(src);
+    return view;
+}
+
+mstr_view *
+mstr_view_bind_byte(mstr_view *view, const char *src, size_t slen)
+{
+    if (view == NULL || (src == NULL && slen != 0))
+        return NULL;
+
+    view->len = slen;
+    view->data = src;
+    return view;
+}
+
+mstr
+mstr_view_to_mstr(const mstr_view *view)
+{
+    if (view == NULL)
+        return mstr_new();
+    return mstr_new_byte(view->data, view->len);
 }

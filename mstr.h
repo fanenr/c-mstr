@@ -121,4 +121,64 @@ mstr_data(const mstr *str)
     return str == NULL ? NULL : str->data;
 }
 
+typedef struct
+{
+    size_t len;
+    const char *data;
+} mstr_view;
+
+extern mstr_view *mstr_view_init(mstr_view *view);
+
+static inline mstr_view mstr_view_new(void);
+static inline mstr_view mstr_view_new_cstr(const char *src);
+static inline mstr_view mstr_view_new_byte(const char *src, size_t slen);
+
+static inline size_t mstr_view_len(const mstr_view *view);
+static inline const char *mstr_view_data(const mstr_view *view);
+
+extern mstr_view *mstr_view_bind_cstr(mstr_view *view, const char *src);
+extern mstr_view *mstr_view_bind_byte(mstr_view *view, const char *src,
+                                      size_t slen);
+
+extern mstr mstr_view_to_mstr(const mstr_view *view)
+    __attribute__((warn_unused_result));
+
+static inline mstr_view
+mstr_view_new(void)
+{
+    mstr_view view;
+    mstr_view_init(&view);
+    return view;
+}
+
+static inline mstr_view
+mstr_view_new_cstr(const char *src)
+{
+    mstr_view view;
+    mstr_view_init(&view);
+    mstr_view_bind_cstr(&view, src);
+    return view;
+}
+
+static inline mstr_view
+mstr_view_new_byte(const char *src, size_t slen)
+{
+    mstr_view view;
+    mstr_view_init(&view);
+    mstr_view_bind_byte(&view, src, slen);
+    return view;
+}
+
+static inline size_t
+mstr_view_len(const mstr_view *view)
+{
+    return view == NULL ? 0 : view->len;
+}
+
+static inline const char *
+mstr_view_data(const mstr_view *view)
+{
+    return view == NULL ? NULL : view->data;
+}
+
 #endif
