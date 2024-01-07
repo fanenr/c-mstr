@@ -386,8 +386,8 @@ mstr_view_init (mstr_view *view)
   if (view == NULL)
     return NULL;
 
-  view->len = 0;
   view->data = NULL;
+  view->len = 0;
   return view;
 }
 
@@ -397,8 +397,8 @@ mstr_view_bind_cstr (mstr_view *view, const char *src)
   if (view == NULL || src == NULL)
     return NULL;
 
-  view->data = src;
   view->len = strlen (src);
+  view->data = src;
   return view;
 }
 
@@ -408,8 +408,19 @@ mstr_view_bind_byte (mstr_view *view, const char *src, size_t slen)
   if (view == NULL || (src == NULL && slen != 0))
     return NULL;
 
-  view->len = slen;
   view->data = src;
+  view->len = slen;
+  return view;
+}
+
+mstr_view *
+mstr_view_bind_mstr (mstr_view *view, const mstr *src)
+{
+  if (view == NULL || src == NULL || src->len == 0)
+    return NULL;
+
+  view->data = src->data;
+  view->len = src->len;
   return view;
 }
 

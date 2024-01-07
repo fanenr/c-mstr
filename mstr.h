@@ -1,9 +1,9 @@
-/* mstr */
-
 #ifndef MSTR_H
 #define MSTR_H
 
 #include <stddef.h>
+
+/* mstr */
 
 #define MSTR_INIT_CAP 8
 #define MSTR_EXPAN_RATIO 2
@@ -61,6 +61,8 @@ extern mstr mstr_sub_range (const mstr *dest, size_t spos, size_t epos)
 extern int mstr_cmp_cstr (const mstr *lhs, const char *rhs);
 extern int mstr_cmp_mstr (const mstr *lhs, const mstr *rhs);
 
+/* mstr_view */
+
 struct mstr_view
 {
   size_t len;
@@ -79,6 +81,7 @@ static inline size_t mstr_view_len (const mstr_view *view);
 static inline const char *mstr_view_data (const mstr_view *view);
 
 extern mstr_view *mstr_view_bind_cstr (mstr_view *view, const char *src);
+extern mstr_view *mstr_view_bind_mstr (mstr_view *view, const mstr *src);
 extern mstr_view *mstr_view_bind_byte (mstr_view *view, const char *src,
                                        size_t slen);
 
