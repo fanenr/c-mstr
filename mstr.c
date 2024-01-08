@@ -2,23 +2,59 @@
 #include <stdlib.h>
 #include <string.h>
 
-mstr *
+#define MSTR_INIT_CAP 8
+#define MSTR_EXPAN_RATIO 2
+
+struct mstr
+{
+  size_t cap;
+  size_t len;
+  char *data;
+};
+
+void
 mstr_init (mstr *str)
 {
-  if (str == NULL)
+  str->len = str->cap = 0;
+  str->data = NULL;
+  return;
+}
+
+void
+mstr_free (mstr *str)
+{
+  free (str->data);
+  mstr_init (str);
+  return;
+}
+
+mstr *
+mstr_reserve (mstr *dest, size_t ncap)
+{
+  size_t cap = dest->cap;
+  if (ncap <= cap)
+    return dest;
+
+  if (ncap < MSTR_INIT_CAP)
+    /* at least MSTR_INIT_CAP */
+    ncap = MSTR_INIT_CAP;
+
+  while (cap < ncap)
+    cap = cap * MSTR_EXPAN_RATIO;
+
+  char *data = realloc (dest->data, cap * sizeof (char));
+  if (data == NULL)
+    /* allocate failed */
     return NULL;
 
-  str->data = NULL;
-  str->len = str->cap = 0;
-  return str;
+  dest->data = data;
+  dest->cap = cap;
+  return dest;
 }
 
 char *
 mstr_release (mstr *str)
 {
-  if (str == NULL)
-    return NULL;
-
   char *data = str->data;
   mstr_init (str);
   return data;
@@ -27,102 +63,73 @@ mstr_release (mstr *str)
 mstr *
 mstr_move_cstr (mstr *dest, char *src)
 {
-  if (dest == NULL || src == NULL)
+  size_t len = strlen (src);
+  if (len == 0)
+    /* src is begin with NULL */
     return NULL;
 
-  size_t len = strlen (src);
-  size_t cap = len + 1;
+  mstr_free (dest);
 
+  dest->cap = len + 1;
   dest->data = src;
   dest->len = len;
-  dest->cap = cap;
   return dest;
 }
 
 mstr *
 mstr_move_mstr (mstr *dest, mstr *src)
 {
-  if (dest == NULL)
-    return NULL;
-
-  if (mstr_free (dest) != dest)
-    /* free failed */
-    return NULL;
-
-  if (src == NULL)
-    return dest;
-
+  mstr_free (dest);
   *dest = *src;
   mstr_init (src);
   return dest;
 }
 
-mstr *
-mstr_swap_mstr (mstr *dest, mstr *src)
+void
+mstr_swap (mstr *dest, mstr *src)
 {
-  if (dest == NULL || src == NULL)
-    return NULL;
-
   mstr copy = *dest;
   *dest = *src;
   *src = copy;
-  return dest;
-}
-
-mstr *
-mstr_reserve (mstr *dest, size_t cap)
-{
-  if (dest == NULL || cap <= dest->cap)
-    return dest;
-
-  char *data = realloc (dest->data, cap);
-  if (data == NULL)
-    /* allocate failed */
-    return NULL;
-
-  dest->cap = cap;
-  dest->data = data;
-  return dest;
+  return;
 }
 
 mstr *
 mstr_cat_char (mstr *dest, char src)
 {
-  if (dest == NULL || src == '\0')
+  if (src == '\0')
     return dest;
 
-  if (dest->cap < dest->len + 2)
-    {
-      size_t cap
-          = dest->cap > 0 ? dest->cap * MSTR_EXPAN_RATIO : MSTR_INIT_CAP;
-      if (mstr_reserve (dest, cap) != dest)
-        /* allocate failed */
-        return NULL;
-    }
+  size_t len = dest->len;
+  if (len + 2 > dest->cap)
+    /* expand capacity */
+    if (mstr_reserve (dest, len + 2) != dest)
+      /* allocate failed */
+      return NULL;
 
-  dest->data[dest->len++] = src;
-  dest->data[dest->len] = '\0';
+  dest->data[len] = src;
+  dest->data[len + 1] = '\0';
+
+  dest->len++;
   return dest;
 }
 
 mstr *
 mstr_cat_cstr (mstr *dest, const char *src)
 {
-  if (dest == NULL || src == NULL || *src == '\0')
+  size_t len = dest->len;
+  size_t slen = strlen (src);
+  if (slen == 0)
+    /* src is begin with NULL */
     return dest;
 
-  size_t cap = dest->cap;
-  size_t dlen = dest->len;
-  size_t slen = strlen (src);
-  if (cap < dlen + slen + 1)
-    {
-      cap = cap > 0 ? dlen + slen + 1 : slen + 1;
-      if (mstr_reserve (dest, cap) != dest)
-        /* allocate failed */
-        return NULL;
-    }
+  if (len + slen + 1 > dest->cap)
+    /* expand capacity */
+    if (mstr_reserve (dest, len + slen + 1) != dest)
+      /* allocate failed */
+      return NULL;
 
-  char *pos = dest->data + dlen;
+  char *pos = dest->data + len;
   if (memmove (pos, src, slen) != pos)
     /* copy failed */
     return NULL;
@@ -135,146 +142,108 @@ mstr_cat_cstr (mstr *dest, const char *src)
 mstr *
 mstr_cat_mstr (mstr *dest, const mstr *src)
 {
-  if (dest == NULL || src == NULL || src->len == 0)
-    return dest;
-  return mstr_cat_byte (dest, src->data, src->len);
+  return mstr_cat_chars (dest, src->data, src->len);
 }
 
 mstr *
-mstr_cat_byte (mstr *dest, const char *src, size_t slen)
+mstr_cat_chars (mstr *dest, const char *src, size_t slen)
 {
-  if (dest == NULL || src == NULL || *src == '\0' || slen == 0)
-    return dest;
-
-  size_t cap = dest->cap;
-  size_t dlen = dest->len;
-  slen = src[slen - 1] == '\0' ? slen - 1 : slen;
-  if (cap < dlen + slen + 1)
+  const char *find = memchr (dest, '\0', slen);
+  if (find != NULL)
     {
-      cap = cap > 0 ? dlen + slen + 1 : slen + 1;
-      if (mstr_reserve (dest, cap) != dest)
-        /* allocate failed */
+      if (find != (src + slen - 1))
+        /* not a valid cstr */
         return NULL;
+      /* remove NULL at the end */
+      slen -= 1;
     }
 
-  char *pos = dest->data + dlen;
+  size_t len = dest->len;
+  if (len + slen + 1 > dest->cap)
+    if (mstr_reserve (dest, len + slen + 1) != dest)
+      /* allocate failed */
+      return NULL;
+
+  char *pos = dest->data + len;
   if (memmove (pos, src, slen) != pos)
     /* copy failed */
     return NULL;
+  pos[slen] = '\0';
 
   dest->len += slen;
-  dest->data[dest->len] = '\0';
   return dest;
 }
 
 mstr *
 mstr_assign_char (mstr *dest, char src)
 {
-  if (dest == NULL || src == '\0')
-    return mstr_free (dest);
-
-  size_t cap = MSTR_INIT_CAP;
-  char *data = malloc (cap);
-  if (data == NULL)
-    /* allocate failed */
-    return NULL;
-
-  data[0] = src;
-  data[1] = '\0';
-  if (mstr_free (dest) != dest)
-    { /* free failed */
-      free (data);
+  if (dest->cap < 2)
+    /* expand capacity */
+    if (mstr_reserve (dest, 2) != dest)
+      /* allocate failed */
       return NULL;
-    }
 
-  dest->data = data;
-  dest->cap = cap;
-  dest->len = 2;
+  dest->data[0] = src;
+  dest->data[1] = '\0';
+
+  dest->len = src == '\0' ? 0 : 1;
   return dest;
 }
 
 mstr *
 mstr_assign_cstr (mstr *dest, const char *src)
 {
-  if (dest == NULL || src == NULL || *src == '\0')
-    return mstr_free (dest);
-
   size_t slen = strlen (src);
-  size_t cap = slen + 1 < MSTR_INIT_CAP ? MSTR_INIT_CAP : slen + 1;
 
-  char *data = malloc (cap);
-  if (data == NULL)
-    /* allocate failed */
-    return NULL;
+  if (slen + 1 > dest->cap)
+    /* expand capacity */
+    if (mstr_reserve (dest, slen + 1) != dest)
+      /* allocate failed */
+      return NULL;
 
-  data[slen] = '\0';
+  char *data = dest->data;
   if (memmove (data, src, slen) != data)
-    { /* copy failed */
-      free (data);
-      return NULL;
-    }
+    /* copy failed */
+    return NULL;
+  data[slen] = '\0';
 
-  if (mstr_free (dest) != dest)
-    { /* free failed */
-      free (data);
-      return NULL;
-    }
-
-  dest->data = data;
   dest->len = slen;
-  dest->cap = cap;
   return dest;
 }
 
 mstr *
 mstr_assign_mstr (mstr *dest, const mstr *src)
 {
-  if (dest == NULL || src == NULL || src->len == 0)
-    return mstr_free (dest);
-  return mstr_assign_byte (dest, src->data, src->len);
+  return mstr_assign_chars (dest, src->data, src->len);
 }
 
 mstr *
-mstr_assign_byte (mstr *dest, const char *src, size_t slen)
+mstr_assign_chars (mstr *dest, const char *src, size_t slen)
 {
-  if (dest == NULL || src == NULL || *src == '\0' || slen == 0)
-    return mstr_free (dest);
+  const char *find = memchr (dest, '\0', slen);
+  if (find != NULL)
+    {
+      if (find != (src + slen - 1))
+        /* not a valid cstr */
+        return NULL;
+      /* remove NULL at the end */
+      slen -= 1;
+    }
 
-  slen = src[slen - 1] == '\0' ? slen - 1 : slen;
-  size_t cap = slen + 1 < MSTR_INIT_CAP ? MSTR_INIT_CAP : slen + 1;
+  if (slen + 1 > dest->cap)
+    /* expand capacity */
+    if (mstr_reserve (dest, slen + 1) != dest)
+      /* allocate failed */
+      return NULL;
 
-  char *data = malloc (cap);
-  if (data == NULL)
-    /* allocate failed */
-    return NULL;
-
-  data[slen] = '\0';
+  char *data = dest->data;
   if (memmove (data, src, slen) != data)
-    { /* copy failed */
-      free (data);
-      return NULL;
-    }
-
-  if (mstr_free (dest) != dest)
-    { /* free failed */
-      free (data);
-      return NULL;
-    }
-
-  dest->data = data;
-  dest->len = slen;
-  dest->cap = cap;
-  return dest;
-}
-
-mstr *
-mstr_free (mstr *str)
-{
-  if (str == NULL)
+    /* copy failed */
     return NULL;
+  data[slen] = '\0';
 
-  free (str->data);
-  return mstr_init (str);
+  dest->len = slen;
+  return dest;
 }
 
 mstr *
@@ -380,6 +349,7 @@ mstr_cmp_mstr (const mstr *lhs, const mstr *rhs)
   return strcmp (lhs->data, rhs->data);
 }
 
+/*
 mstr_view *
 mstr_view_init (mstr_view *view)
 {
@@ -431,3 +401,4 @@ mstr_view_to_mstr (const mstr_view *view)
     return mstr_new ();
   return mstr_new_byte (view->data, view->len);
 }
+*/
