@@ -3,11 +3,17 @@
 
 #include <stddef.h>
 
-/* mstr */
-
-struct mstr;
+struct mstr
+{
+  size_t cap;
+  size_t len;
+  char *data;
+};
 
 typedef struct mstr mstr;
+
+#define MSTR_INIT_CAP 8
+#define MSTR_EXPAN_RATIO 2
 
 extern void mstr_init (mstr *str) __attribute__ ((nonnull (1)));
 
@@ -51,15 +57,11 @@ extern mstr *mstr_assign_mstr (mstr *dest, const mstr *src)
 extern mstr *mstr_assign_chars (mstr *dest, const char *src, size_t slen)
     __attribute__ ((nonnull (1, 2)));
 
-extern mstr *mstr_remove (mstr *dest, size_t spos, size_t len)
+extern mstr *mstr_remove (mstr *dest, size_t spos, size_t slen)
     __attribute__ ((nonnull (1)));
 
-extern mstr mstr_substr (const mstr *dest, size_t spos, size_t len)
-    __attribute__ ((nonnull (1), warn_unused_result));
-
-#define MSTR_CMP_EQ 0
-#define MSTR_CMP_GT 1
-#define MSTR_CMP_LT -1
+extern mstr *mstr_substr (mstr *dest, const mstr *src, size_t spos,
+                          size_t slen) __attribute__ ((nonnull (1, 2)));
 
 extern int mstr_cmp_cstr (const mstr *lhs, const char *rhs)
     __attribute__ ((nonnull (1, 2)));

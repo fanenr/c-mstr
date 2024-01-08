@@ -2,16 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MSTR_INIT_CAP 8
-#define MSTR_EXPAN_RATIO 2
-
-struct mstr
-{
-  size_t cap;
-  size_t len;
-  char *data;
-};
-
 void
 mstr_init (mstr *str)
 {
@@ -247,105 +237,51 @@ mstr_assign_chars (mstr *dest, const char *src, size_t slen)
 }
 
 mstr *
-mstr_remove_from (mstr *dest, size_t spos, size_t len)
+mstr_remove (mstr *dest, size_t spos, size_t slen)
 {
-  if (dest == NULL || len == 0 || spos >= dest->len)
-    return dest;
-
-  size_t dlen = dest->len;
-  if (spos + len >= dlen - 1)
-    {
-      dest->data[spos] = '\0';
-      dest->len = spos;
-      return dest;
-    }
-
-  size_t clen = dlen - spos - len;
-  char *st = dest->data + spos;
-  char *ed = st + len;
-  if (memmove (st, ed, clen) != st)
+  size_t len = dest->len;
+  if (spos >= len)
+    /* out of range */
     return NULL;
 
-  dest->data[spos + clen] = '\0';
-  dest->len -= len;
+  if (slen > len - spos)
+    slen = len - spos;
+
+  char *data = dest->data;
+  char *rmst = data + spos;
+  char *cpst = rmst + slen;
+  size_t cplen = len - spos - slen;
+  if (memmove (rmst, cpst, cplen) != rmst)
+    /* move failed */
+    return NULL;
+
+  dest->len -= slen;
   return dest;
 }
 
 mstr *
-mstr_remove_range (mstr *dest, size_t spos, size_t epos)
+mstr_sub (mstr *dest, const mstr *src, size_t spos, size_t slen)
 {
-  if (dest == NULL || spos > epos)
-    return dest;
-  return mstr_remove_from (dest, spos, epos - spos + 1);
-}
+  size_t len = src->len;
+  if (spos >= len)
+    /* out of range */
+    return NULL;
 
-mstr
-mstr_sub_from (const mstr *dest, size_t spos, size_t len)
-{
-  if (dest == NULL || len == 0 || spos >= dest->len)
-    return mstr_new ();
+  if (slen > len - spos)
+    slen = len - spos;
 
-  if (spos + len >= dest->len)
-    return mstr_new_byte (&dest->data[spos], dest->len - spos);
-
-  return mstr_new_byte (&dest->data[spos], len);
-}
-
-mstr
-mstr_sub_range (const mstr *dest, size_t spos, size_t epos)
-{
-  if (dest == NULL || spos > epos)
-    return mstr_new ();
-  return mstr_sub_from (dest, spos, epos - spos + 1);
+  return mstr_assign_chars (dest, src->data + spos, slen);
 }
 
 int
 mstr_cmp_cstr (const mstr *lhs, const char *rhs)
 {
-  if (lhs == NULL && rhs == NULL)
-    return MSTR_CMP_EQ;
-
-  if (lhs == NULL)
-    {
-      if (*rhs == '\0')
-        return MSTR_CMP_EQ;
-      else
-        return MSTR_CMP_LT;
-    }
-
-  if (rhs == NULL)
-    {
-      if (lhs->len == 0)
-        return MSTR_CMP_EQ;
-      else
-        return MSTR_CMP_GT;
-    }
-
   return strcmp (lhs->data, rhs);
 }
 
 int
 mstr_cmp_mstr (const mstr *lhs, const mstr *rhs)
 {
-  if (lhs == NULL && rhs == NULL)
-    return MSTR_CMP_EQ;
-
-  if (lhs == NULL)
-    {
-      if (rhs->len == 0)
-        return MSTR_CMP_EQ;
-      else
-        return MSTR_CMP_LT;
-    }
-
-  if (rhs == NULL)
-    {
-      if (lhs->len == 0)
-        return MSTR_CMP_EQ;
-      else
-        return MSTR_CMP_GT;
-    }
-
   return strcmp (lhs->data, rhs->data);
 }
 
