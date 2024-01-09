@@ -146,11 +146,14 @@ mstr_cat_chars (mstr *dest, const char *src, size_t slen)
   const char *find = memchr (dest, '\0', slen);
   if (find != NULL)
     {
-      if (find != (src + slen - 1))
-        /* not a valid cstr */
-        return NULL;
+      size_t suffix = 1;
+      size_t remain = slen - (find - src) - 1;
+      for (; suffix <= remain; suffix++)
+        if (*(++find) != '\0')
+          /* not a valid cstr */
+          return NULL;
       /* remove NULL at the end */
-      slen -= 1;
+      slen -= suffix;
     }
 
   size_t len = dest->len;
@@ -218,11 +221,14 @@ mstr_assign_chars (mstr *dest, const char *src, size_t slen)
   const char *find = memchr (dest, '\0', slen);
   if (find != NULL)
     {
-      if (find != (src + slen - 1))
-        /* not a valid cstr */
-        return NULL;
+      size_t suffix = 1;
+      size_t remain = slen - (find - src) - 1;
+      for (; suffix <= remain; suffix++)
+        if (*(++find) != '\0')
+          /* not a valid cstr */
+          return NULL;
       /* remove NULL at the end */
-      slen -= 1;
+      slen -= suffix;
     }
 
   if (slen + 1 > dest->cap)
