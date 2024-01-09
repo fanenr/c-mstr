@@ -3,14 +3,27 @@
 
 #include <stddef.h>
 
-struct mstr
+struct mstr_heap
 {
   size_t cap;
   size_t len;
   char *data;
 };
 
-typedef struct mstr mstr;
+struct mstr_sso
+{
+  unsigned char flag : 1;
+  unsigned char len : 8 * sizeof (unsigned char) - 1;
+  char data[sizeof (struct mstr_heap) - sizeof (unsigned char)];
+};
+
+union mstr
+{
+  struct mstr_sso sso;
+  struct mstr_heap heap;
+};
+
+typedef union mstr mstr;
 
 #define MSTR_INIT_CAP 8
 #define MSTR_EXPAN_RATIO 2
@@ -24,9 +37,6 @@ extern mstr *mstr_reserve (mstr *dest, size_t ncap)
 
 extern char *mstr_release (mstr *str)
     __attribute__ ((nonnull (1), warn_unused_result));
-
-extern mstr *mstr_move_cstr (mstr *dest, char *src)
-    __attribute__ ((nonnull (1, 2)));
 
 extern mstr *mstr_move_mstr (mstr *dest, mstr *src)
     __attribute__ ((nonnull (1, 2)));
