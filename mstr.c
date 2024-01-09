@@ -25,6 +25,10 @@ mstr_reserve (mstr *dest, size_t ncap)
   if (ncap <= cap)
     return dest;
 
+  if (cap < MSTR_INIT_CAP)
+    /* at least MSTR_INIT_CAP */
+    cap = MSTR_INIT_CAP;
+
   if (ncap < MSTR_INIT_CAP)
     /* at least MSTR_INIT_CAP */
     ncap = MSTR_INIT_CAP;
@@ -284,57 +288,3 @@ mstr_cmp_mstr (const mstr *lhs, const mstr *rhs)
 {
   return strcmp (lhs->data, rhs->data);
 }
-
-/*
-mstr_view *
-mstr_view_init (mstr_view *view)
-{
-  if (view == NULL)
-    return NULL;
-
-  view->data = NULL;
-  view->len = 0;
-  return view;
-}
-
-mstr_view *
-mstr_view_bind_cstr (mstr_view *view, const char *src)
-{
-  if (view == NULL || src == NULL)
-    return NULL;
-
-  view->len = strlen (src);
-  view->data = src;
-  return view;
-}
-
-mstr_view *
-mstr_view_bind_byte (mstr_view *view, const char *src, size_t slen)
-{
-  if (view == NULL || (src == NULL && slen != 0))
-    return NULL;
-
-  view->data = src;
-  view->len = slen;
-  return view;
-}
-
-mstr_view *
-mstr_view_bind_mstr (mstr_view *view, const mstr *src)
-{
-  if (view == NULL || src == NULL || src->len == 0)
-    return NULL;
-
-  view->data = src->data;
-  view->len = src->len;
-  return view;
-}
-
-mstr
-mstr_view_to_mstr (const mstr_view *view)
-{
-  if (view == NULL)
-    return mstr_new ();
-  return mstr_new_byte (view->data, view->len);
-}
-*/
