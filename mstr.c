@@ -29,10 +29,6 @@ mstr_reserve (mstr *dest, size_t ncap)
     /* at least MSTR_INIT_CAP */
     cap = MSTR_INIT_CAP;
 
-  if (ncap < MSTR_INIT_CAP)
-    /* at least MSTR_INIT_CAP */
-    ncap = MSTR_INIT_CAP;
-
   while (cap < ncap)
     cap = cap * MSTR_EXPAN_RATIO;
 
@@ -96,11 +92,9 @@ mstr_cat_char (mstr *dest, char src)
     return dest;
 
   size_t len = dest->len;
-  if (len + 2 > dest->cap)
-    /* expand capacity */
-    if (mstr_reserve (dest, len + 2) != dest)
-      /* allocate failed */
-      return NULL;
+  if (mstr_reserve (dest, len + 2) != dest)
+    /* allocate failed */
+    return NULL;
 
   dest->data[len] = src;
   dest->data[len + 1] = '\0';
@@ -118,11 +112,9 @@ mstr_cat_cstr (mstr *dest, const char *src)
     /* src is begin with NULL */
     return dest;
 
-  if (len + slen + 1 > dest->cap)
-    /* expand capacity */
-    if (mstr_reserve (dest, len + slen + 1) != dest)
-      /* allocate failed */
-      return NULL;
+  if (mstr_reserve (dest, len + slen + 1) != dest)
+    /* allocate failed */
+    return NULL;
 
   char *pos = dest->data + len;
   if (memmove (pos, src, slen) != pos)
@@ -157,10 +149,9 @@ mstr_cat_chars (mstr *dest, const char *src, size_t slen)
     }
 
   size_t len = dest->len;
-  if (len + slen + 1 > dest->cap)
-    if (mstr_reserve (dest, len + slen + 1) != dest)
-      /* allocate failed */
-      return NULL;
+  if (mstr_reserve (dest, len + slen + 1) != dest)
+    /* allocate failed */
+    return NULL;
 
   char *pos = dest->data + len;
   if (memmove (pos, src, slen) != pos)
@@ -175,11 +166,9 @@ mstr_cat_chars (mstr *dest, const char *src, size_t slen)
 mstr *
 mstr_assign_char (mstr *dest, char src)
 {
-  if (dest->cap < 2)
-    /* expand capacity */
-    if (mstr_reserve (dest, 2) != dest)
-      /* allocate failed */
-      return NULL;
+  if (mstr_reserve (dest, 2) != dest)
+    /* allocate failed */
+    return NULL;
 
   dest->data[0] = src;
   dest->data[1] = '\0';
@@ -193,11 +182,9 @@ mstr_assign_cstr (mstr *dest, const char *src)
 {
   size_t slen = strlen (src);
 
-  if (slen + 1 > dest->cap)
-    /* expand capacity */
-    if (mstr_reserve (dest, slen + 1) != dest)
-      /* allocate failed */
-      return NULL;
+  if (mstr_reserve (dest, slen + 1) != dest)
+    /* allocate failed */
+    return NULL;
 
   char *data = dest->data;
   if (memmove (data, src, slen) != data)
@@ -231,11 +218,9 @@ mstr_assign_chars (mstr *dest, const char *src, size_t slen)
       slen -= suffix;
     }
 
-  if (slen + 1 > dest->cap)
-    /* expand capacity */
-    if (mstr_reserve (dest, slen + 1) != dest)
-      /* allocate failed */
-      return NULL;
+  if (mstr_reserve (dest, slen + 1) != dest)
+    /* allocate failed */
+    return NULL;
 
   char *data = dest->data;
   if (memmove (data, src, slen) != data)
