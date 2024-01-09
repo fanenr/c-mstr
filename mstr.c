@@ -58,13 +58,13 @@ mstr *
 mstr_move_cstr (mstr *dest, char *src)
 {
   size_t len = strlen (src);
-  if (len == 0)
-    /* src is begin with NULL */
-    return NULL;
 
+  /* free dest */
   mstr_free (dest);
 
-  dest->cap = len + 1;
+  /* make sure capacity is aligned */
+  mstr_reserve (dest, len + 1);
+
   dest->data = src;
   dest->len = len;
   return dest;
@@ -73,8 +73,9 @@ mstr_move_cstr (mstr *dest, char *src)
 mstr *
 mstr_move_mstr (mstr *dest, mstr *src)
 {
-  mstr_free (dest);
+  mstr bak = *dest;
   *dest = *src;
+  mstr_free (&bak);
   mstr_init (src);
   return dest;
 }
