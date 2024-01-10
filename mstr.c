@@ -2,8 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define sso_cap (sizeof (mstr) - sizeof (unsigned char))
+
 #define is_sso(str) (str->sso.flag == 1)
-#define sso_max_cap (sizeof (mstr) - sizeof (unsigned char))
+#define get_cap(str) (is_sso (str) ? sso_cap : str->heap.cap)
+#define get_len(str) (is_sso (str) ? str->sso.len : str->heap.len)
+#define get_data(str) (is_sso (str) ? str->sso.data : str->heap.data)
 
 void
 mstr_init (mstr *str)
@@ -22,11 +26,29 @@ mstr_free (mstr *str)
   return;
 }
 
+size_t
+mstr_cap (const mstr *str)
+{
+  return get_cap (str);
+}
+
+size_t
+mstr_len (const mstr *str)
+{
+  return get_len (str);
+}
+
+const char *
+mstr_data (const mstr *str)
+{
+  return get_data (str);
+}
+
 mstr *
 mstr_reserve (mstr *dest, size_t ncap)
 {
   char flag = is_sso (dest);
-  if (flag && ncap <= sso_max_cap)
+  if (flag && ncap <= sso_cap)
     return dest;
 
   size_t cap = MSTR_INIT_CAP;

@@ -1,20 +1,24 @@
-tests := $(targets:%=test_%)
+LDFLAGS   = -g
+MAKEFLAGS = --no-print-directory
+CFLAGS    = -Wall -Wextra -Werror -ggdb -std=gnu11
 
-.PHONY: all $(tests)
+tests := test_mstr
+
+.PHONY: all
 all: $(tests)
 
 $(tests): test_%: %
 	./$<
 	@echo "$< test passed"
 
-$(targets): %: %.o ../%.o
+mstr: mstr.o ../mstr.o
 	gcc -o $@ $^ $(LDFLAGS)
 
-$(objects): %.o: %.c ../%.h
+mstr.o: mstr.c ../mstr.h
 	gcc -c $< $(CFLAGS)
 
-$(objects:%=../%): ../%.o: ../%.c ../%.h
-	cd .. && make $(subst ../,,$@)
+../mstr.o: ../mstr.c ../mstr.h
+	cd .. && make
 
 clean:
-	-rm -f *.o $(targets)
+	-rm -f *.o $(tests:test_%=%)

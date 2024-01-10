@@ -32,6 +32,12 @@ extern void mstr_init (mstr *str) __attribute__ ((nonnull (1)));
 
 extern void mstr_free (mstr *str) __attribute__ ((nonnull (1)));
 
+extern size_t mstr_cap (const mstr *str) __attribute__ ((nonnull (1)));
+
+extern size_t mstr_len (const mstr *str) __attribute__ ((nonnull (1)));
+
+extern const char *mstr_data (const mstr *str) __attribute__ ((nonnull (1)));
+
 extern mstr *mstr_reserve (mstr *dest, size_t ncap)
     __attribute__ ((nonnull (1)));
 
