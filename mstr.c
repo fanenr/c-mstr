@@ -8,9 +8,7 @@
 void
 mstr_init (mstr *str)
 {
-  str->heap.cap = 0;
-  str->heap.len = 0;
-  str->heap.data = NULL;
+  memset (str, 0, sizeof (mstr));
   str->sso.flag = 1;
   return;
 }
@@ -338,18 +336,22 @@ mstr_sub (mstr *dest, const mstr *src, size_t spos, size_t slen)
   if (slen > len - spos)
     slen = len - spos;
 
-  if (flag)
-    return mstr_assign_chars (dest, src->sso.data + spos, slen);
-  return mstr_assign_chars (dest, src->heap.data, slen);
+  const char *pos = (flag ? src->sso.data : src->heap.data) + spos;
+  return mstr_assign_chars (dest, pos, slen);
 }
 
 int
 mstr_cmp_cstr (const mstr *lhs, const char *rhs)
 {
   char flag = is_sso (lhs);
-  if (flag)
-    return strcmp (lhs->sso.data, rhs);
-  return strcmp (lhs->heap.data, rhs);
+  size_t len2 = strlen (rhs);
+  size_t len1 = flag ? lhs->sso.len : lhs->heap.len;
+  const char *data = flag ? lhs->sso.data : lhs->heap.data;
+  int cmp = memcmp (data, rhs, len1 > len2 ? len2 : len1);
+
+  if (cmp != 0)
+    return cmp;
+  return len1 > len2 ? 1 : -1;
 }
 
 int
@@ -357,7 +359,13 @@ mstr_cmp_mstr (const mstr *lhs, const mstr *rhs)
 {
   char flag1 = is_sso (lhs);
   char flag2 = is_sso (rhs);
+  size_t len1 = flag1 ? lhs->sso.len : lhs->heap.len;
+  size_t len2 = flag2 ? rhs->sso.len : rhs->heap.len;
   const char *data1 = flag1 ? lhs->sso.data : lhs->heap.data;
   const char *data2 = flag2 ? rhs->sso.data : rhs->heap.data;
-  return strcmp (data1, data2);
+  int cmp = memcmp (data1, data2, len1 > len2 ? len2 : len1);
+
+  if (cmp != 0)
+    return cmp;
+  return len1 > len2 ? 1 : -1;
 }
