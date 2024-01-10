@@ -4,7 +4,6 @@
 
 #define is_sso(str) (str->sso.flag == 1)
 #define sso_max_cap (sizeof (mstr) - sizeof (unsigned char))
-#define sso_max_len (sso_max_cap - 1)
 
 void
 mstr_init (mstr *str)
@@ -320,9 +319,9 @@ mstr_remove (mstr *dest, size_t spos, size_t slen)
     return NULL;
 
   if (flag)
-    dest->sso.len -= slen;
+    dest->sso.len = len - slen;
   else
-    dest->heap.len -= slen;
+    dest->heap.len = len - slen;
 
   return dest;
 }
