@@ -2,6 +2,7 @@
 #define MSTR_H
 
 #include <stddef.h>
+#include <threads.h>
 
 struct mstr_heap
 {
@@ -24,6 +25,13 @@ union mstr
 };
 
 typedef union mstr mstr;
+
+typedef enum
+{
+  MSTR_ERR_NONE,
+} mstr_errno_t;
+
+extern thread_local mstr_errno_t mstr_errno;
 
 #define MSTR_INIT_CAP 8
 #define MSTR_EXPAN_RATIO 2
