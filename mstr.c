@@ -9,6 +9,8 @@
 #define get_len(str) (is_sso (str) ? str->sso.len : str->heap.len)
 #define get_data(str) (is_sso (str) ? str->sso.data : str->heap.data)
 
+thread_local mstr_errno_t mstr_errno = MSTR_ERR_NONE;
+
 void
 mstr_init (mstr *str)
 {
