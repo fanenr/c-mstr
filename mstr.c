@@ -15,7 +15,7 @@ thread_local mstr_errno_t mstr_errno = MSTR_ERR_NONE;
 void
 mstr_init (mstr_t *str)
 {
-  memset (str, 0, sizeof (mstr_t));
+  *str = (mstr_t)(mstr_sso_t){ .flag = 1 };
   str->sso.flag = 1;
   return;
 }
