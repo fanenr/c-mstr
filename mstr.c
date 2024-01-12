@@ -16,7 +16,6 @@ void
 mstr_init (mstr_t *str)
 {
   *str = (mstr_t)(mstr_sso_t){ .flag = 1 };
-  str->sso.flag = 1;
   return;
 }
 
