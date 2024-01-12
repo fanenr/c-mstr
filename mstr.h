@@ -4,27 +4,25 @@
 #include <stddef.h>
 #include <threads.h>
 
-struct mstr_heap_t
+typedef struct mstr_heap_t
 {
   size_t cap;
   size_t len;
   char *data;
-};
+} mstr_heap_t;
 
-struct mstr_sso_t
+typedef struct mstr_sso_t
 {
   unsigned char flag : 1;
   unsigned char len : 8 * sizeof (unsigned char) - 1;
   char data[sizeof (struct mstr_heap_t) - sizeof (unsigned char)];
-};
+} mstr_sso_t;
 
-union mstr_t
+typedef union mstr_t
 {
   struct mstr_sso_t sso;
   struct mstr_heap_t heap;
-};
-
-typedef union mstr_t mstr_t;
+} mstr_t;
 
 typedef enum
 {
