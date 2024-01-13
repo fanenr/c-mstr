@@ -3,11 +3,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define sso_cap (sizeof (mstr_t) - sizeof (unsigned char))
+#define MSTR_SSO_MAXCAP (sizeof (mstr_t) - sizeof (unsigned char))
 
-#define is_sso(str) (str->sso.flag == 1)
-#define get_cap(str) (is_sso (str) ? sso_cap : str->heap.cap)
+#define is_sso(str) (str->sso.flag)
 #define get_len(str) (is_sso (str) ? str->sso.len : str->heap.len)
+#define get_cap(str) (is_sso (str) ? MSTR_SSO_MAXCAP : str->heap.cap)
 #define get_data(str) (is_sso (str) ? str->sso.data : str->heap.data)
 
 thread_local mstr_errno_t mstr_errno = MSTR_ERR_NONE;
@@ -15,7 +15,7 @@ thread_local mstr_errno_t mstr_errno = MSTR_ERR_NONE;
 void
 mstr_init (mstr_t *str)
 {
-  *str = (mstr_t)(mstr_sso_t){ .flag = 1 };
+  *str = (mstr_t)(mstr_sso_t){ .flag = true };
   return;
 }
 
@@ -50,7 +50,7 @@ mstr_t *
 mstr_reserve (mstr_t *dest, size_t ncap)
 {
   bool flag = is_sso (dest);
-  if (flag && ncap <= sso_cap)
+  if (flag && ncap <= MSTR_SSO_MAXCAP)
     return dest;
 
   size_t cap = MSTR_INIT_CAP;
