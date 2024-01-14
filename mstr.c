@@ -87,7 +87,6 @@ mstr_reserve (mstr_t *dest, size_t ncap)
 
   dest->heap.data = data;
   dest->heap.cap = cap;
-  dest->sso.flag = 0;
   return dest;
 }
 

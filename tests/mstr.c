@@ -5,9 +5,14 @@
 static void test_init (void);
 static void test_free (void);
 static void test_reserve (void);
+
 static void test_cat_char (void);
 static void test_cat_cstr (void);
 static void test_cat_chars (void);
+
+static void test_assign_char (void);
+static void test_assign_cstr (void);
+static void test_assign_chars (void);
 
 int
 main (void)
@@ -15,9 +20,14 @@ main (void)
   test_init ();
   test_free ();
   test_reserve ();
+
   test_cat_char ();
   test_cat_cstr ();
   test_cat_chars ();
+
+  test_assign_char ();
+  test_assign_cstr ();
+  test_assign_chars ();
 }
 
 static void
@@ -133,3 +143,75 @@ test_cat_chars (void)
   mstr_free (&mstr);
 }
 
+static void
+test_assign_char (void)
+{
+  mstr_t mstr;
+  mstr_init (&mstr);
+
+  /* all in sso */
+  assert (mstr_assign_char (&mstr, 'a') == &mstr);
+  assert (mstr_assign_char (&mstr, 'b') == &mstr);
+  assert (mstr.sso.flag == true);
+  assert (mstr.sso.len == 1);
+
+  mstr_reserve (&mstr, 24);
+
+  /* all in heap */
+  assert (mstr_assign_char (&mstr, 'a') == &mstr);
+  assert (mstr_assign_char (&mstr, 'b') == &mstr);
+  assert (mstr.sso.flag == false);
+  assert (mstr.heap.len == 1);
+
+  mstr_free (&mstr);
+}
+
+static void
+test_assign_cstr (void)
+{
+  mstr_t mstr;
+  mstr_init (&mstr);
+
+  /* all in sso */
+  assert (mstr_assign_cstr (&mstr, "hello world! hello c!") == &mstr);
+  assert (mstr_assign_cstr (&mstr, "hello world!") == &mstr);
+  assert (mstr.sso.flag == true);
+  assert (mstr.sso.len == 12);
+
+  /* all in heap */
+  assert (mstr_assign_cstr (&mstr, "hello world! hello mstr! hello c!")
+          == &mstr);
+  assert (mstr_assign_cstr (&mstr, "hello world!") == &mstr);
+  assert (mstr.sso.flag == false);
+  assert (mstr.heap.len == 12);
+
+  mstr_free (&mstr);
+}
+
+static void
+test_assign_chars (void)
+{
+  mstr_t mstr;
+  mstr_init (&mstr);
+
+  assert (mstr_assign_chars (&mstr, "abcdef\0a", 9) == NULL);
+  assert (mstr_assign_chars (&mstr, "abcdef\0", 8) == &mstr);
+  assert (mstr.sso.len == 6);
+  assert (mstr_assign_chars (&mstr, "abcdef\0", 6) == &mstr);
+  assert (mstr.sso.len == 6);
+
+  /* all in sso */
+  assert (mstr_assign_cstr (&mstr, "hello world! hello c!") == &mstr);
+  assert (mstr_assign_cstr (&mstr, "hello world!") == &mstr);
+  assert (mstr.sso.flag == true);
+  assert (mstr.sso.len == 12);
+
+  /* all in heap */
+  assert (mstr_assign_cstr (&mstr, "hello world! hello mstr! hello c!")
+          == &mstr);
+  assert (mstr_assign_cstr (&mstr, "hello world!") == &mstr);
+  assert (mstr.sso.flag == false);
+  assert (mstr.heap.len == 12);
+
+  mstr_free (&mstr);
+}
