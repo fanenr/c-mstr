@@ -14,6 +14,8 @@ static void test_assign_char (void);
 static void test_assign_cstr (void);
 static void test_assign_chars (void);
 
+static void test_remove (void);
+
 int
 main (void)
 {
@@ -28,6 +30,8 @@ main (void)
   test_assign_char ();
   test_assign_cstr ();
   test_assign_chars ();
+
+  test_remove ();
 }
 
 static void
@@ -213,5 +217,20 @@ test_assign_chars (void)
   assert (mstr.sso.flag == false);
   assert (mstr.heap.len == 12);
 
+  mstr_free (&mstr);
+}
+
+static void
+test_remove (void)
+{
+  mstr_t mstr;
+  mstr_init (&mstr);
+
+  mstr_assign_cstr (&mstr, "Hello World!");
+  assert (mstr_remove (&mstr, 12, 0) == NULL);
+  assert (mstr_remove (&mstr, 5, 6) == &mstr);
+  assert (mstr_cmp_cstr (&mstr, "Hello!") == 0);
+  assert (mstr_remove (&mstr, 3, 5) == &mstr);
+  assert (mstr_cmp_cstr (&mstr, "Hel") == 0);
   mstr_free (&mstr);
 }

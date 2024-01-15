@@ -334,7 +334,7 @@ mstr_remove (mstr_t *dest, size_t spos, size_t slen)
   char *data = flag ? dest->sso.data : dest->heap.data;
   char *rmst = data + spos;
   char *cpst = rmst + slen;
-  size_t cplen = len - spos - slen;
+  size_t cplen = len - spos - slen + 1;
   if (memmove (rmst, cpst, cplen) != rmst)
     /* move failed */
     return NULL;
@@ -372,7 +372,7 @@ mstr_cmp_cstr (const mstr_t *lhs, const char *rhs)
   const char *data = flag ? lhs->sso.data : lhs->heap.data;
   int cmp = memcmp (data, rhs, len1 > len2 ? len2 : len1);
 
-  if (cmp != 0)
+  if (cmp != 0 || len1 == len2)
     return cmp;
   return len1 > len2 ? 1 : -1;
 }
@@ -388,7 +388,7 @@ mstr_cmp_mstr (const mstr_t *lhs, const mstr_t *rhs)
   const char *data2 = flag2 ? rhs->sso.data : rhs->heap.data;
   int cmp = memcmp (data1, data2, len1 > len2 ? len2 : len1);
 
-  if (cmp != 0)
+  if (cmp != 0 || len1 == len2)
     return cmp;
   return len1 > len2 ? 1 : -1;
 }
