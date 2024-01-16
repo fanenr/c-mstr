@@ -348,7 +348,7 @@ mstr_remove (mstr_t *dest, size_t spos, size_t slen)
 }
 
 mstr_t *
-mstr_sub (mstr_t *dest, const mstr_t *src, size_t spos, size_t slen)
+mstr_substr (mstr_t *dest, const mstr_t *src, size_t spos, size_t slen)
 {
   bool flag = is_sso (src);
   size_t len = flag ? src->sso.len : src->heap.len;
