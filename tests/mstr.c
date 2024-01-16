@@ -15,6 +15,7 @@ static void test_assign_cstr (void);
 static void test_assign_chars (void);
 
 static void test_remove (void);
+static void test_substr (void);
 
 int
 main (void)
@@ -32,6 +33,7 @@ main (void)
   test_assign_chars ();
 
   test_remove ();
+  test_substr ();
 }
 
 static void
@@ -232,5 +234,24 @@ test_remove (void)
   assert (mstr_cmp_cstr (&mstr, "Hello!") == 0);
   assert (mstr_remove (&mstr, 3, 5) == &mstr);
   assert (mstr_cmp_cstr (&mstr, "Hel") == 0);
+
   mstr_free (&mstr);
+}
+
+static void
+test_substr (void)
+{
+  mstr_t mstr, sub;
+  mstr_init (&mstr);
+  mstr_init (&sub);
+
+  mstr_assign_cstr (&mstr, "Hello World!");
+  assert (mstr_substr (&sub, &mstr, 12, 1) == NULL);
+  assert (mstr_substr (&sub, &mstr, 6, 5) == &sub);
+  assert (mstr_cmp_cstr (&sub, "World") == 0);
+  assert (mstr_substr (&sub, &mstr, 6, 8) == &sub);
+  assert (mstr_cmp_cstr (&sub, "World!") == 0);
+
+  mstr_free (&mstr);
+  mstr_free (&sub);
 }
