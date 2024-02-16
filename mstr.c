@@ -5,10 +5,10 @@
 
 #define MSTR_SSO_MAXCAP (sizeof (mstr_t) - sizeof (char))
 
-#define is_sso(str) (str->sso.flag)
-#define get_len(str) (is_sso (str) ? str->sso.len : str->heap.len)
-#define get_cap(str) (is_sso (str) ? MSTR_SSO_MAXCAP : str->heap.cap)
-#define get_data(str) (is_sso (str) ? str->sso.data : str->heap.data)
+#define is_sso(str) ((str)->sso.flag)
+#define get_len(str) (is_sso (str) ? (str)->sso.len : (str)->heap.len)
+#define get_cap(str) (is_sso (str) ? MSTR_SSO_MAXCAP : (str)->heap.cap)
+#define get_data(str) (is_sso (str) ? (str)->sso.data : (str)->heap.data)
 
 thread_local mstr_errno_t mstr_errno = MSTR_ERR_NONE;
 
@@ -16,7 +16,6 @@ void
 mstr_init (mstr_t *str)
 {
   *str = (mstr_t)(mstr_sso_t){ .flag = true };
-  return;
 }
 
 void
@@ -25,7 +24,6 @@ mstr_free (mstr_t *str)
   if (!is_sso (str))
     free (str->heap.data);
   mstr_init (str);
-  return;
 }
 
 size_t
@@ -47,28 +45,24 @@ mstr_data (const mstr_t *str)
 }
 
 mstr_t *
-mstr_reserve (mstr_t *dest, size_t ncap)
+mstr_reserve (mstr_t *dest, size_t cap)
 {
   bool flag = is_sso (dest);
-  if (flag && ncap <= MSTR_SSO_MAXCAP)
+  if (flag && cap <= MSTR_SSO_MAXCAP)
+    return dest;
+  if (!flag && cap <= dest->heap.cap)
     return dest;
 
-  size_t cap = MSTR_INIT_CAP;
-  if (!flag)
-    {
-      if (ncap <= dest->heap.cap)
-        return dest;
-
-      if (dest->heap.cap > cap)
-        cap = dest->heap.cap;
-    }
+  size_t ncap = MSTR_INIT_CAP;
+  if (!flag && dest->heap.cap > ncap)
+    ncap = dest->heap.cap;
 
   /* compute the capacity to allocate */
-  while (cap < ncap)
-    cap *= MSTR_EXPAN_RATIO;
+  while (ncap < cap)
+    ncap *= MSTR_EXPAN_RATIO;
 
-  char *data = flag ? malloc (cap * sizeof (char))
-                    : realloc (dest->heap.data, cap * sizeof (char));
+  char *data = flag ? malloc (ncap * sizeof (char))
+                    : realloc (dest->heap.data, ncap * sizeof (char));
   if (data == NULL)
     /* malloc failed */
     return NULL;
@@ -86,7 +80,7 @@ mstr_reserve (mstr_t *dest, size_t ncap)
     }
 
   dest->heap.data = data;
-  dest->heap.cap = cap;
+  dest->heap.cap = ncap;
   return dest;
 }
 
@@ -118,7 +112,6 @@ mstr_swap (mstr_t *dest, mstr_t *src)
   mstr_t copy = *dest;
   *dest = *src;
   *src = copy;
-  return;
 }
 
 mstr_t *
@@ -182,9 +175,7 @@ mstr_cat_cstr (mstr_t *dest, const char *src)
 mstr_t *
 mstr_cat_mstr (mstr_t *dest, const mstr_t *src)
 {
-  if (is_sso (src))
-    return mstr_cat_chars (dest, src->sso.data, src->sso.len);
-  return mstr_cat_chars (dest, src->heap.data, src->heap.len);
+  return mstr_cat_chars (dest, get_data (src), get_len (src));
 }
 
 mstr_t *
@@ -277,9 +268,7 @@ mstr_assign_cstr (mstr_t *dest, const char *src)
 mstr_t *
 mstr_assign_mstr (mstr_t *dest, const mstr_t *src)
 {
-  if (is_sso (src))
-    return mstr_assign_chars (dest, src->sso.data, src->sso.len);
-  return mstr_assign_chars (dest, src->heap.data, src->heap.len);
+  return mstr_assign_chars (dest, get_data (src), get_len (src));
 }
 
 mstr_t *
