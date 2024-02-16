@@ -14,14 +14,14 @@ typedef struct mstr_heap_t
 typedef struct mstr_sso_t
 {
   unsigned char flag : 1;
-  unsigned char len : 8 * sizeof (unsigned char) - 1;
-  char data[sizeof (struct mstr_heap_t) - sizeof (unsigned char)];
+  unsigned char len : 8 * sizeof (char) - 1;
+  char data[sizeof (mstr_heap_t) - sizeof (char)];
 } mstr_sso_t;
 
 typedef union mstr_t
 {
-  struct mstr_sso_t sso;
-  struct mstr_heap_t heap;
+  mstr_sso_t sso;
+  mstr_heap_t heap;
 } mstr_t;
 
 typedef enum
@@ -44,11 +44,10 @@ extern size_t mstr_len (const mstr_t *str) __attribute__ ((nonnull (1)));
 
 extern const char *mstr_data (const mstr_t *str) __attribute__ ((nonnull (1)));
 
+extern char *mstr_release (mstr_t *str) __attribute__ ((nonnull (1)));
+
 extern mstr_t *mstr_reserve (mstr_t *dest, size_t ncap)
     __attribute__ ((nonnull (1)));
-
-extern char *mstr_release (mstr_t *str)
-    __attribute__ ((nonnull (1), warn_unused_result));
 
 extern mstr_t *mstr_move_mstr (mstr_t *dest, mstr_t *src)
     __attribute__ ((nonnull (1, 2)));
