@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MSTR_SSO_MAXCAP (sizeof (mstr_t) - sizeof (unsigned char))
+#define MSTR_SSO_MAXCAP (sizeof (mstr_t) - sizeof (char))
 
 #define is_sso(str) (str->sso.flag)
 #define get_len(str) (is_sso (str) ? str->sso.len : str->heap.len)
