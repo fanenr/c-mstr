@@ -14,8 +14,8 @@ typedef struct mstr_heap_t
 typedef struct mstr_sso_t
 {
   unsigned char flag : 1;
-  unsigned char len : 8 * sizeof (char) - 1;
-  char data[sizeof (mstr_heap_t) - sizeof (char)];
+  unsigned char len : 7;
+  char data[sizeof (mstr_heap_t) - 1];
 } mstr_sso_t;
 
 typedef union mstr_t
@@ -31,8 +31,8 @@ typedef enum
 
 extern thread_local mstr_errno_t mstr_errno;
 
-#define MSTR_INIT_CAP 8
 #define MSTR_EXPAN_RATIO 2
+#define MSTR_INIT_CAP (sizeof (mstr_t))
 
 extern void mstr_init (mstr_t *str) __attribute__ ((nonnull (1)));
 
@@ -46,7 +46,7 @@ extern const char *mstr_data (const mstr_t *str) __attribute__ ((nonnull (1)));
 
 extern char *mstr_release (mstr_t *str) __attribute__ ((nonnull (1)));
 
-extern mstr_t *mstr_reserve (mstr_t *dest, size_t ncap)
+extern mstr_t *mstr_reserve (mstr_t *dest, size_t cap)
     __attribute__ ((nonnull (1)));
 
 extern mstr_t *mstr_move_mstr (mstr_t *dest, mstr_t *src)
