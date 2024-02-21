@@ -1,24 +1,24 @@
-LDFLAGS   = -g
-MAKEFLAGS = --no-print-directory
-CFLAGS    = -Wall -Wextra -Werror -ggdb -std=gnu11
-
-tests := test_mstr
+tasks := $(targets:%=run_%)
 
 .PHONY: all
-all: $(tests)
+all: $(targets)
 
-$(tests): test_%: %
+$(targets): %: %.o ../%.o
+	gcc $(LDFLAGS) -o $@ $^
+
+$(objects): %.o: %.c ../%.h
+	gcc $(CFLAGS) -c $<
+
+$(objects:%=../%): ../%.o: ../%.c ../%.h
+	cd .. && make $(subst ../,,$@)
+
+.PHONY: run $(tasks)
+run: $(tasks)
+
+$(tasks): run_%: %
 	./$<
 	@echo "$< test passed"
 
-mstr: mstr.o ../mstr.o
-	gcc -o $@ $^ $(LDFLAGS)
-
-mstr.o: mstr.c ../mstr.h
-	gcc -c $< $(CFLAGS)
-
-../mstr.o: ../mstr.c ../mstr.h
-	cd .. && make
-
+.PHONY: clean
 clean:
-	-rm -f *.o $(tests:test_%=%)
+	-rm -f *.o $(targets)
