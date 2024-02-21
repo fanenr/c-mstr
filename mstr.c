@@ -44,6 +44,14 @@ mstr_data (const mstr_t *str)
   return get_data (str);
 }
 
+int
+mstr_at (const mstr_t *str, size_t pos)
+{
+  if (pos >= get_len (str))
+    return -1;
+  return get_data (str)[pos];
+}
+
 mstr_t *
 mstr_reserve (mstr_t *dest, size_t cap)
 {
@@ -175,13 +183,14 @@ mstr_cat_cstr (mstr_t *dest, const char *src)
 mstr_t *
 mstr_cat_mstr (mstr_t *dest, const mstr_t *src)
 {
-  return mstr_cat_chars (dest, get_data (src), get_len (src));
+  return mstr_cat_chars (dest, (const unsigned char *)get_data (src),
+                         get_len (src));
 }
 
 mstr_t *
-mstr_cat_chars (mstr_t *dest, const char *src, size_t slen)
+mstr_cat_chars (mstr_t *dest, const unsigned char *src, size_t slen)
 {
-  const char *find = memchr (src, '\0', slen);
+  const unsigned char *find = memchr (src, '\0', slen);
   if (find != NULL)
     {
       size_t suffix = 1;
@@ -268,13 +277,14 @@ mstr_assign_cstr (mstr_t *dest, const char *src)
 mstr_t *
 mstr_assign_mstr (mstr_t *dest, const mstr_t *src)
 {
-  return mstr_assign_chars (dest, get_data (src), get_len (src));
+  return mstr_assign_chars (dest, (const unsigned char *)get_data (src),
+                            get_len (src));
 }
 
 mstr_t *
-mstr_assign_chars (mstr_t *dest, const char *src, size_t slen)
+mstr_assign_chars (mstr_t *dest, const unsigned char *src, size_t slen)
 {
-  const char *find = memchr (src, '\0', slen);
+  const unsigned char *find = memchr (src, '\0', slen);
   if (find != NULL)
     {
       size_t suffix = 1;
@@ -349,7 +359,7 @@ mstr_substr (mstr_t *dest, const mstr_t *src, size_t spos, size_t slen)
     slen = len - spos;
 
   const char *pos = (flag ? src->sso.data : src->heap.data) + spos;
-  return mstr_assign_chars (dest, pos, slen);
+  return mstr_assign_chars (dest, (const unsigned char *)pos, slen);
 }
 
 int
