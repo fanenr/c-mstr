@@ -52,6 +52,88 @@ mstr_at (const mstr_t *str, size_t pos)
   return get_data (str)[pos];
 }
 
+bool
+mstr_start_with_char (const mstr_t *str, char src)
+{
+  return mstr_start_with_byte (str, (const unsigned char *)&src, 1);
+}
+
+bool
+mstr_start_with_cstr (const mstr_t *str, const char *src)
+{
+  return mstr_start_with_byte (str, (const unsigned char *)src, strlen (src));
+}
+
+bool
+mstr_start_with_mstr (const mstr_t *str, const mstr_t *src)
+{
+  return mstr_start_with_byte (str, (const unsigned char *)get_data (src),
+                               get_len (src));
+}
+
+bool
+mstr_start_with_byte (const mstr_t *str, const unsigned char *src, size_t slen)
+{
+  if (slen > get_len (str))
+    return false;
+
+  return memcmp (get_data (str), src, slen);
+}
+
+bool
+mstr_end_with_char (const mstr_t *str, char src)
+{
+  return mstr_end_with_byte (str, (const unsigned char *)&src, 1);
+}
+
+bool
+mstr_end_with_cstr (const mstr_t *str, const char *src)
+{
+  return mstr_end_with_byte (str, (const unsigned char *)src, strlen (src));
+}
+
+bool
+mstr_end_with_mstr (const mstr_t *str, const mstr_t *src)
+{
+  return mstr_end_with_byte (str, (const unsigned char *)get_data (src),
+                             get_len (src));
+}
+
+bool
+mstr_end_with_byte (const mstr_t *str, const unsigned char *src, size_t slen)
+{
+  if (slen > get_len (str))
+    return false;
+
+  const char *data = get_data (str) + get_len (str) - slen;
+  return memcmp (data, src, slen);
+}
+
+int
+mstr_cmp_cstr (const mstr_t *str, const char *src)
+{
+  return mstr_cmp_byte (str, (const unsigned char *)src, strlen (src));
+}
+
+int
+mstr_cmp_mstr (const mstr_t *str, const mstr_t *src)
+{
+  return mstr_cmp_byte (str, (const unsigned char *)get_data (src),
+                        get_len (src));
+}
+
+int
+mstr_cmp_byte (const mstr_t *str, const unsigned char *src, size_t slen)
+{
+  size_t len = get_len (str);
+  const char *data = get_data (str);
+  int cmp = memcmp (data, src, slen > len ? len : slen);
+
+  if (cmp != 0 || slen == len)
+    return cmp;
+  return len > slen ? 1 : -1;
+}
+
 mstr_t *
 mstr_reserve (mstr_t *dest, size_t cap)
 {
@@ -183,12 +265,12 @@ mstr_cat_cstr (mstr_t *dest, const char *src)
 mstr_t *
 mstr_cat_mstr (mstr_t *dest, const mstr_t *src)
 {
-  return mstr_cat_chars (dest, (const unsigned char *)get_data (src),
-                         get_len (src));
+  return mstr_cat_byte (dest, (const unsigned char *)get_data (src),
+                        get_len (src));
 }
 
 mstr_t *
-mstr_cat_chars (mstr_t *dest, const unsigned char *src, size_t slen)
+mstr_cat_byte (mstr_t *dest, const unsigned char *src, size_t slen)
 {
   const unsigned char *find = memchr (src, '\0', slen);
   if (find != NULL)
@@ -277,12 +359,12 @@ mstr_assign_cstr (mstr_t *dest, const char *src)
 mstr_t *
 mstr_assign_mstr (mstr_t *dest, const mstr_t *src)
 {
-  return mstr_assign_chars (dest, (const unsigned char *)get_data (src),
-                            get_len (src));
+  return mstr_assign_byte (dest, (const unsigned char *)get_data (src),
+                           get_len (src));
 }
 
 mstr_t *
-mstr_assign_chars (mstr_t *dest, const unsigned char *src, size_t slen)
+mstr_assign_byte (mstr_t *dest, const unsigned char *src, size_t slen)
 {
   const unsigned char *find = memchr (src, '\0', slen);
   if (find != NULL)
@@ -359,35 +441,5 @@ mstr_substr (mstr_t *dest, const mstr_t *src, size_t spos, size_t slen)
     slen = len - spos;
 
   const char *pos = (flag ? src->sso.data : src->heap.data) + spos;
-  return mstr_assign_chars (dest, (const unsigned char *)pos, slen);
-}
-
-int
-mstr_cmp_cstr (const mstr_t *lhs, const char *rhs)
-{
-  bool flag = is_sso (lhs);
-  size_t len2 = strlen (rhs);
-  size_t len1 = flag ? lhs->sso.len : lhs->heap.len;
-  const char *data = flag ? lhs->sso.data : lhs->heap.data;
-  int cmp = memcmp (data, rhs, len1 > len2 ? len2 : len1);
-
-  if (cmp != 0 || len1 == len2)
-    return cmp;
-  return len1 > len2 ? 1 : -1;
-}
-
-int
-mstr_cmp_mstr (const mstr_t *lhs, const mstr_t *rhs)
-{
-  bool flag1 = is_sso (lhs);
-  bool flag2 = is_sso (rhs);
-  size_t len1 = flag1 ? lhs->sso.len : lhs->heap.len;
-  size_t len2 = flag2 ? rhs->sso.len : rhs->heap.len;
-  const char *data1 = flag1 ? lhs->sso.data : lhs->heap.data;
-  const char *data2 = flag2 ? rhs->sso.data : rhs->heap.data;
-  int cmp = memcmp (data1, data2, len1 > len2 ? len2 : len1);
-
-  if (cmp != 0 || len1 == len2)
-    return cmp;
-  return len1 > len2 ? 1 : -1;
+  return mstr_assign_byte (dest, (const unsigned char *)pos, slen);
 }
