@@ -134,14 +134,14 @@ test_cat_chars (void)
   mstr_t mstr;
   mstr_init (&mstr);
 
-  assert (mstr_cat_chars (&mstr, "abc\0d", 6) == NULL);
-  assert (mstr_cat_chars (&mstr, "abc\0\0", 6) == &mstr);
+  assert (mstr_cat_chars (&mstr, (unsigned char *)"abc\0d", 6) == NULL);
+  assert (mstr_cat_chars (&mstr, (unsigned char *)"abc\0\0", 6) == &mstr);
   assert (mstr.sso.flag == true);
   assert (mstr.sso.len == 3);
 
   /* heap after the last loop */
   for (int i = 0; i < 5; i++)
-    assert (mstr_cat_chars (&mstr, "abcd", 4));
+    assert (mstr_cat_chars (&mstr, (unsigned char *)"abcd", 4));
 
   assert (mstr.sso.flag == false);
   assert (mstr.heap.len == 23);
@@ -200,10 +200,10 @@ test_assign_chars (void)
   mstr_t mstr;
   mstr_init (&mstr);
 
-  assert (mstr_assign_chars (&mstr, "abcdef\0a", 9) == NULL);
-  assert (mstr_assign_chars (&mstr, "abcdef\0", 8) == &mstr);
+  assert (mstr_assign_chars (&mstr, (unsigned char *)"abcdef\0a", 9) == NULL);
+  assert (mstr_assign_chars (&mstr, (unsigned char *)"abcdef\0", 8) == &mstr);
   assert (mstr.sso.len == 6);
-  assert (mstr_assign_chars (&mstr, "abcdef\0", 6) == &mstr);
+  assert (mstr_assign_chars (&mstr, (unsigned char *)"abcdef\0", 6) == &mstr);
   assert (mstr.sso.len == 6);
 
   /* all in sso */
