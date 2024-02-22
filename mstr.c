@@ -63,6 +63,117 @@ mstr_at (const mstr_t *str, size_t pos)
   return get_data (str)[pos];
 }
 
+char *
+mstr_release (mstr_t *str)
+{
+  if (is_sso (str))
+    /* sso mstr can not be released */
+    return NULL;
+
+  char *data = str->heap.data;
+  mstr_init (str);
+  return data;
+}
+
+mstr_t *
+mstr_reserve (mstr_t *dest, size_t cap)
+{
+  bool flag = is_sso (dest);
+  if (flag && cap <= MSTR_SSO_MAXCAP)
+    return dest;
+  if (!flag && cap <= dest->heap.cap)
+    return dest;
+
+  size_t ncap = MSTR_INIT_CAP;
+  if (!flag && dest->heap.cap > ncap)
+    ncap = dest->heap.cap;
+
+  /* compute the capacity to allocate */
+  while (ncap < cap)
+    ncap *= MSTR_EXPAN_RATIO;
+
+  char *data = flag ? malloc (ncap * sizeof (char))
+                    : realloc (dest->heap.data, ncap * sizeof (char));
+  if (data == NULL)
+    /* malloc failed */
+    return NULL;
+
+  if (flag)
+    {
+      /* copy sso mstr into heap */
+      if (memcpy (data, dest->sso.data, dest->sso.len + 1) != data)
+        { /* copy failed */
+          free (data);
+          return NULL;
+        }
+      /* save the length of sso mstr */
+      dest->heap.len = dest->sso.len;
+    }
+
+  dest->heap.data = data;
+  dest->heap.cap = ncap;
+  return dest;
+}
+
+mstr_t *
+mstr_remove (mstr_t *dest, size_t spos, size_t slen)
+{
+  if (!slen)
+    return dest;
+
+  size_t len = get_len (dest);
+  if (spos >= len)
+    /* out of range */
+    return NULL;
+
+  if (slen > len - spos)
+    slen = len - spos;
+
+  char *data = get_data (dest);
+  char *rmst = data + spos;
+  char *cpst = rmst + slen;
+  size_t cplen = len - spos - slen + 1;
+  if (memmove (rmst, cpst, cplen) != rmst)
+    /* move failed */
+    return NULL;
+
+  set_len (dest, len - slen);
+  return dest;
+}
+
+void
+mstr_swap (mstr_t *dest, mstr_t *src)
+{
+  mstr_t copy = *dest;
+  *dest = *src;
+  *src = copy;
+}
+
+mstr_t *
+mstr_move (mstr_t *dest, mstr_t *src)
+{
+  mstr_t bak = *dest;
+  *dest = *src;
+  mstr_free (&bak);
+  mstr_init (src);
+  return dest;
+}
+
+mstr_t *
+mstr_substr (mstr_t *dest, const mstr_t *src, size_t spos, size_t slen)
+{
+  size_t len = get_len (src);
+  if (spos >= len)
+    /* out of range */
+    return NULL;
+
+  if (slen > len - spos)
+    slen = len - spos;
+
+  const char *pos = get_data (src) + spos;
+  return mstr_assign_byte (dest, (const uchar *)pos, slen);
+}
+
 bool
 mstr_start_with_char (const mstr_t *str, char src)
 {
@@ -145,80 +256,8 @@ mstr_cmp_byte (const mstr_t *str, const unsigned char *src, size_t slen)
 }
 
 mstr_t *
-mstr_reserve (mstr_t *dest, size_t cap)
-{
-  bool flag = is_sso (dest);
-  if (flag && cap <= MSTR_SSO_MAXCAP)
-    return dest;
-  if (!flag && cap <= dest->heap.cap)
-    return dest;
-
-  size_t ncap = MSTR_INIT_CAP;
-  if (!flag && dest->heap.cap > ncap)
-    ncap = dest->heap.cap;
-
-  /* compute the capacity to allocate */
-  while (ncap < cap)
-    ncap *= MSTR_EXPAN_RATIO;
-
-  char *data = flag ? malloc (ncap * sizeof (char))
-                    : realloc (dest->heap.data, ncap * sizeof (char));
-  if (data == NULL)
-    /* malloc failed */
-    return NULL;
-
-  if (flag)
-    {
-      /* copy sso mstr into heap */
-      if (memcpy (data, dest->sso.data, dest->sso.len + 1) != data)
-        { /* copy failed */
-          free (data);
-          return NULL;
-        }
-      /* save the length of sso mstr */
-      dest->heap.len = dest->sso.len;
-    }
-
-  dest->heap.data = data;
-  dest->heap.cap = ncap;
-  return dest;
-}
-
-char *
-mstr_release (mstr_t *str)
-{
-  if (is_sso (str))
-    /* sso mstr can not be released */
-    return NULL;
-
-  char *data = str->heap.data;
-  mstr_init (str);
-  return data;
-}
-
-mstr_t *
-mstr_move_mstr (mstr_t *dest, mstr_t *src)
-{
-  mstr_t bak = *dest;
-  *dest = *src;
-  mstr_free (&bak);
-  mstr_init (src);
-  return dest;
-}
-
-void
-mstr_swap (mstr_t *dest, mstr_t *src)
-{
-  mstr_t copy = *dest;
-  *dest = *src;
-  *src = copy;
-}
-
-mstr_t *
 mstr_cat_char (mstr_t *dest, char src)
 {
-  if (src == '\0')
-    return dest;
   return mstr_cat_byte (dest, (const uchar *)&src, 1);
 }
 
@@ -281,7 +320,7 @@ mstr_assign_mstr (mstr_t *dest, const mstr_t *src)
 mstr_t *
 mstr_assign_byte (mstr_t *dest, const unsigned char *src, size_t slen)
 {
-  const unsigned char *find = memchr (src, '\0', slen);
+  const uchar *find = memchr (src, '\0', slen);
   if (find != NULL)
     slen = find - src;
 
@@ -304,45 +343,4 @@ mstr_assign_byte (mstr_t *dest, const unsigned char *src, size_t slen)
 
   set_len (dest, slen);
   return dest;
-}
-
-mstr_t *
-mstr_remove (mstr_t *dest, size_t spos, size_t slen)
-{
-  size_t len = get_len (dest);
-  if (spos >= len)
-    /* out of range */
-    return NULL;
-
-  if (!slen)
-    return dest;
-
-  if (slen > len - spos)
-    slen = len - spos;
-
-  char *data = get_data (dest);
-  char *rmst = data + spos;
-  char *cpst = rmst + slen;
-  size_t cplen = len - spos - slen + 1;
-  if (memmove (rmst, cpst, cplen) != rmst)
-    /* move failed */
-    return NULL;
-
-  set_len (dest, len - slen);
-  return dest;
-}
-
-mstr_t *
-mstr_substr (mstr_t *dest, const mstr_t *src, size_t spos, size_t slen)
-{
-  size_t len = get_len (src);
-  if (spos >= len)
-    /* out of range */
-    return NULL;
-
-  if (slen > len - spos)
-    slen = len - spos;
-
-  const char *pos = get_data (src) + spos;
-  return mstr_assign_byte (dest, (const uchar *)pos, slen);
 }
