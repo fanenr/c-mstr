@@ -59,7 +59,7 @@ extern mstr_t *mstr_remove (mstr_t *dest, size_t spos, size_t slen)
 extern void mstr_swap (mstr_t *dest, mstr_t *src)
     __attribute__ ((nonnull (1, 2)));
 
-extern mstr_t *mstr_move_mstr (mstr_t *dest, mstr_t *src)
+extern mstr_t *mstr_move (mstr_t *dest, mstr_t *src)
     __attribute__ ((nonnull (1, 2)));
 
 extern mstr_t *mstr_substr (mstr_t *dest, const mstr_t *src, size_t spos,

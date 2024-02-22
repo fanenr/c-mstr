@@ -228,7 +228,7 @@ test_remove (void)
   mstr_init (&mstr);
 
   mstr_assign_cstr (&mstr, "Hello World!");
-  assert (!mstr_remove (&mstr, 12, 0));
+  assert (mstr_remove (&mstr, 12, 0));
   assert (mstr_remove (&mstr, 5, 6));
   assert (mstr_cmp_cstr (&mstr, "Hello!") == 0);
   assert (mstr_remove (&mstr, 3, 5));
