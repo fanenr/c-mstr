@@ -3,30 +3,26 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MSTR_SSO_MAXCAP (sizeof (mstr_t) - sizeof (char))
-
-#define is_sso(STR) ((STR)->sso.flag)
+#define is_sso(STR) ((STR)->sso.flg)
 
 #define get_len(STR) (!is_sso (STR) ? (STR)->heap.len : (STR)->sso.len)
 #define get_cap(STR) (!is_sso (STR) ? (STR)->heap.cap : MSTR_SSO_MAXCAP)
 #define get_data(STR) (!is_sso (STR) ? (STR)->heap.data : (STR)->sso.data)
 
 #define set_len(STR, LEN)                                                     \
-  ({                                                                          \
-    if (!is_sso (STR))                                                        \
-      (STR)->heap.len = (LEN);                                                \
-    else                                                                      \
-      (STR)->sso.len = (LEN);                                                 \
-    (LEN);                                                                    \
-  })
-
-typedef unsigned char uchar;
-thread_local mstr_errno_t mstr_errno = MSTR_ERR_NONE;
+  do                                                                          \
+    {                                                                         \
+      if (!is_sso (STR))                                                      \
+        (STR)->heap.len = (LEN);                                              \
+      else                                                                    \
+        (STR)->sso.len = (LEN);                                               \
+    }                                                                         \
+  while (0)
 
 void
 mstr_init (mstr_t *str)
 {
-  *str = (mstr_t)(mstr_sso_t){ .flag = true };
+  *str = (mstr_t)(mstr_sso_t){ .flg = true };
 }
 
 void
@@ -78,27 +74,26 @@ mstr_release (mstr_t *str)
 mstr_t *
 mstr_reserve (mstr_t *dest, size_t cap)
 {
-  bool flag = is_sso (dest);
-  if (flag && cap <= MSTR_SSO_MAXCAP)
+  bool flg = is_sso (dest);
+  if (flg && cap <= MSTR_SSO_MAXCAP)
     return dest;
-  if (!flag && cap <= dest->heap.cap)
+  if (!flg && cap <= dest->heap.cap)
     return dest;
 
   size_t ncap = MSTR_INIT_CAP;
-  if (!flag && dest->heap.cap > ncap)
+  if (!flg && dest->heap.cap > ncap)
     ncap = dest->heap.cap;
 
   /* compute the capacity to allocate */
   while (ncap < cap)
     ncap *= MSTR_EXPAN_RATIO;
 
-  char *data = flag ? malloc (ncap * sizeof (char))
-                    : realloc (dest->heap.data, ncap * sizeof (char));
+  char *data = flg ? malloc (ncap) : realloc (dest->heap.data, ncap);
   if (data == NULL)
     /* malloc failed */
     return NULL;
 
-  if (flag)
+  if (flg)
     {
       /* copy sso mstr into heap */
       if (memcpy (data, dest->sso.data, dest->sso.len + 1) != data)
@@ -152,9 +147,8 @@ mstr_swap (mstr_t *dest, mstr_t *src)
 mstr_t *
 mstr_move (mstr_t *dest, mstr_t *src)
 {
-  mstr_t bak = *dest;
+  mstr_free (dest);
   *dest = *src;
-  mstr_free (&bak);
   mstr_init (src);
   return dest;
 }
@@ -171,30 +165,30 @@ mstr_substr (mstr_t *dest, const mstr_t *src, size_t spos, size_t slen)
     slen = len - spos;
 
   const char *pos = get_data (src) + spos;
-  return mstr_assign_byte (dest, (const uchar *)pos, slen);
+  return mstr_assign_byte (dest, (const mstr_byte_t *)pos, slen);
 }
 
 bool
 mstr_start_with_char (const mstr_t *str, char src)
 {
-  return mstr_start_with_byte (str, (const uchar *)&src, 1);
+  return mstr_start_with_byte (str, (const mstr_byte_t *)&src, 1);
 }
 
 bool
 mstr_start_with_cstr (const mstr_t *str, const char *src)
 {
-  return mstr_start_with_byte (str, (const uchar *)src, strlen (src));
+  return mstr_start_with_byte (str, (const mstr_byte_t *)src, strlen (src));
 }
 
 bool
 mstr_start_with_mstr (const mstr_t *str, const mstr_t *src)
 {
-  return mstr_start_with_byte (str, (const uchar *)get_data (src),
+  return mstr_start_with_byte (str, (const mstr_byte_t *)get_data (src),
                                get_len (src));
 }
 
 bool
-mstr_start_with_byte (const mstr_t *str, const unsigned char *src, size_t slen)
+mstr_start_with_byte (const mstr_t *str, const mstr_byte_t *src, size_t slen)
 {
   if (slen > get_len (str))
     return false;
@@ -205,24 +199,24 @@ mstr_start_with_byte (const mstr_t *str, const unsigned char *src, size_t slen)
 bool
 mstr_end_with_char (const mstr_t *str, char src)
 {
-  return mstr_end_with_byte (str, (const uchar *)&src, 1);
+  return mstr_end_with_byte (str, (const mstr_byte_t *)&src, 1);
 }
 
 bool
 mstr_end_with_cstr (const mstr_t *str, const char *src)
 {
-  return mstr_end_with_byte (str, (const uchar *)src, strlen (src));
+  return mstr_end_with_byte (str, (const mstr_byte_t *)src, strlen (src));
 }
 
 bool
 mstr_end_with_mstr (const mstr_t *str, const mstr_t *src)
 {
-  return mstr_end_with_byte (str, (const uchar *)get_data (src),
+  return mstr_end_with_byte (str, (const mstr_byte_t *)get_data (src),
                              get_len (src));
 }
 
 bool
-mstr_end_with_byte (const mstr_t *str, const unsigned char *src, size_t slen)
+mstr_end_with_byte (const mstr_t *str, const mstr_byte_t *src, size_t slen)
 {
   if (slen > get_len (str))
     return false;
@@ -234,17 +228,18 @@ mstr_end_with_byte (const mstr_t *str, const unsigned char *src, size_t slen)
 int
 mstr_cmp_cstr (const mstr_t *str, const char *src)
 {
-  return mstr_cmp_byte (str, (const uchar *)src, strlen (src));
+  return mstr_cmp_byte (str, (const mstr_byte_t *)src, strlen (src));
 }
 
 int
 mstr_cmp_mstr (const mstr_t *str, const mstr_t *src)
 {
-  return mstr_cmp_byte (str, (const uchar *)get_data (src), get_len (src));
+  return mstr_cmp_byte (str, (const mstr_byte_t *)get_data (src),
+                        get_len (src));
 }
 
 int
-mstr_cmp_byte (const mstr_t *str, const unsigned char *src, size_t slen)
+mstr_cmp_byte (const mstr_t *str, const mstr_byte_t *src, size_t slen)
 {
   size_t len = get_len (str);
   const char *data = get_data (str);
@@ -258,28 +253,25 @@ mstr_cmp_byte (const mstr_t *str, const unsigned char *src, size_t slen)
 mstr_t *
 mstr_cat_char (mstr_t *dest, char src)
 {
-  return mstr_cat_byte (dest, (const uchar *)&src, 1);
+  return mstr_cat_byte (dest, (const mstr_byte_t *)&src, 1);
 }
 
 mstr_t *
 mstr_cat_cstr (mstr_t *dest, const char *src)
 {
-  return mstr_cat_byte (dest, (const uchar *)src, strlen (src));
+  return mstr_cat_byte (dest, (const mstr_byte_t *)src, strlen (src));
 }
 
 mstr_t *
 mstr_cat_mstr (mstr_t *dest, const mstr_t *src)
 {
-  return mstr_cat_byte (dest, (const uchar *)get_data (src), get_len (src));
+  return mstr_cat_byte (dest, (const mstr_byte_t *)get_data (src),
+                        get_len (src));
 }
 
 mstr_t *
-mstr_cat_byte (mstr_t *dest, const unsigned char *src, size_t slen)
+mstr_cat_byte (mstr_t *dest, const mstr_byte_t *src, size_t slen)
 {
-  const unsigned char *find = memchr (src, '\0', slen);
-  if (find != NULL)
-    slen = find - src;
-
   if (!slen)
     return dest;
 
@@ -302,28 +294,25 @@ mstr_cat_byte (mstr_t *dest, const unsigned char *src, size_t slen)
 mstr_t *
 mstr_assign_char (mstr_t *dest, char src)
 {
-  return mstr_assign_byte (dest, (const uchar *)&src, 1);
+  return mstr_assign_byte (dest, (const mstr_byte_t *)&src, 1);
 }
 
 mstr_t *
 mstr_assign_cstr (mstr_t *dest, const char *src)
 {
-  return mstr_assign_byte (dest, (const uchar *)src, strlen (src));
+  return mstr_assign_byte (dest, (const mstr_byte_t *)src, strlen (src));
 }
 
 mstr_t *
 mstr_assign_mstr (mstr_t *dest, const mstr_t *src)
 {
-  return mstr_assign_byte (dest, (const uchar *)get_data (src), get_len (src));
+  return mstr_assign_byte (dest, (const mstr_byte_t *)get_data (src),
+                           get_len (src));
 }
 
 mstr_t *
-mstr_assign_byte (mstr_t *dest, const unsigned char *src, size_t slen)
+mstr_assign_byte (mstr_t *dest, const mstr_byte_t *src, size_t slen)
 {
-  const uchar *find = memchr (src, '\0', slen);
-  if (find != NULL)
-    slen = find - src;
-
   if (!slen)
     {
       get_data (dest)[0] = '\0';
