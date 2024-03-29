@@ -63,13 +63,6 @@ extern mstr_t *mstr_move (mstr_t *dest, mstr_t *src)
 extern mstr_t *mstr_substr (mstr_t *dest, const mstr_t *src, size_t spos,
                             size_t slen) __attribute__ ((nonnull (1, 2)));
 
-#define mstr_start_with(dest, src, ...)                                       \
-  _Generic ((src),                                                            \
-      int: mstr_start_with_char,                                              \
-      char *: mstr_start_with_cstr,                                           \
-      mstr_t *: mstr_start_with_mstr,                                         \
-      mstr_byte_t *: mstr_start_with_byte) (dest, src, ##__VA_ARGS__)
-
 extern bool mstr_start_with_char (const mstr_t *str, char src)
     __attribute__ ((nonnull (1)));
 
@@ -81,13 +74,6 @@ extern bool mstr_start_with_mstr (const mstr_t *str, const mstr_t *src)
 
 extern bool mstr_start_with_byte (const mstr_t *str, const mstr_byte_t *src,
                                   size_t slen) __attribute__ ((nonnull (1)));
-
-#define mstr_end_with(dest, src, ...)                                         \
-  _Generic ((src),                                                            \
-      int: mstr_end_with_char,                                                \
-      char *: mstr_end_with_cstr,                                             \
-      mstr_t *: mstr_end_with_mstr,                                           \
-      mstr_byte_t *: mstr_end_with_byte) (dest, src, ##__VA_ARGS__)
 
 extern bool mstr_end_with_char (const mstr_t *str, char src)
     __attribute__ ((nonnull (1)));
@@ -101,12 +87,6 @@ extern bool mstr_end_with_mstr (const mstr_t *str, const mstr_t *src)
 extern bool mstr_end_with_byte (const mstr_t *str, const mstr_byte_t *src,
                                 size_t slen) __attribute__ ((nonnull (1)));
 
-#define mstr_cmp(dest, src, ...)                                              \
-  _Generic ((src),                                                            \
-      char *: mstr_cmp_cstr,                                                  \
-      mstr_t *: mstr_cmp_mstr,                                                \
-      mstr_byte_t *: mstr_cmp_byte) (dest, src, ##__VA_ARGS__)
-
 extern int mstr_cmp_cstr (const mstr_t *str, const char *src)
     __attribute__ ((nonnull (1, 2)));
 
@@ -115,13 +95,6 @@ extern int mstr_cmp_mstr (const mstr_t *str, const mstr_t *src)
 
 extern int mstr_cmp_byte (const mstr_t *str, const mstr_byte_t *src,
                           size_t slen) __attribute__ ((nonnull (1, 2)));
-
-#define mstr_cat(dest, src, ...)                                              \
-  _Generic ((src),                                                            \
-      int: mstr_cat_char,                                                     \
-      char *: mstr_cat_cstr,                                                  \
-      mstr_t *: mstr_cat_mstr,                                                \
-      mstr_byte_t *: mstr_cat_byte) (dest, src, ##__VA_ARGS__)
 
 extern mstr_t *mstr_cat_char (mstr_t *dest, char src)
     __attribute__ ((nonnull (1)));
@@ -134,13 +107,6 @@ extern mstr_t *mstr_cat_mstr (mstr_t *dest, const mstr_t *src)
 
 extern mstr_t *mstr_cat_byte (mstr_t *dest, const mstr_byte_t *src,
                               size_t slen) __attribute__ ((nonnull (1, 2)));
-
-#define mstr_assign(dest, src, ...)                                           \
-  _Generic ((src),                                                            \
-      int: mstr_assign_char,                                                  \
-      char *: mstr_assign_cstr,                                               \
-      mstr_t *: mstr_assign_mstr,                                             \
-      mstr_byte_t *: mstr_assign_byte) (dest, src, ##__VA_ARGS__)
 
 extern mstr_t *mstr_assign_char (mstr_t *dest, char src)
     __attribute__ ((nonnull (1)));
