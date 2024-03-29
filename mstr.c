@@ -1,7 +1,14 @@
 #include "mstr.h"
-#include <stdbool.h>
-#include <stdlib.h>
 #include <string.h>
+
+#ifndef MSTR_MEM
+#include <stdlib.h>
+#define mstr_mem_free free
+#define mstr_mem_malloc malloc
+#define mstr_mem_realloc realloc
+#else
+#include "mstr_mem.h"
+#endif
 
 #define is_sso(STR) ((STR)->sso.flg)
 
@@ -29,7 +36,7 @@ void
 mstr_free (mstr_t *str)
 {
   if (!is_sso (str))
-    free (str->heap.data);
+    mstr_mem_free (str->heap.data);
   mstr_init (str);
 }
 
@@ -88,7 +95,8 @@ mstr_reserve (mstr_t *dest, size_t cap)
   while (ncap < cap)
     ncap *= MSTR_EXPAN_RATIO;
 
-  char *data = flg ? malloc (ncap) : realloc (dest->heap.data, ncap);
+  char *data = flg ? mstr_mem_malloc (ncap)
+                   : mstr_mem_realloc (dest->heap.data, ncap);
   if (data == NULL)
     /* malloc failed */
     return NULL;
@@ -98,7 +106,7 @@ mstr_reserve (mstr_t *dest, size_t cap)
       /* copy sso mstr into heap */
       if (memcpy (data, dest->sso.data, dest->sso.len + 1) != data)
         { /* copy failed */
-          free (data);
+          mstr_mem_free (data);
           return NULL;
         }
       /* save the length of sso mstr */
