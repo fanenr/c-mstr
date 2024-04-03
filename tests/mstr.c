@@ -42,8 +42,7 @@ test_init (void)
   mstr_t mstr;
   mstr_init (&mstr);
 
-  /* heap.cap == 1 equals to sso.flg == true */
-  assert (mstr.heap.cap == 1);
+  assert (mstr.heap.cap % 2);
   assert (mstr.heap.len == 0);
   assert (mstr.heap.data == NULL);
 }
@@ -69,8 +68,8 @@ test_reserve (void)
   assert (mstr_reserve (&mstr, sso_cap));
   assert (mstr_reserve (&mstr, sso_cap / 2));
 
-  assert (mstr.sso.flg == true);
   assert (mstr.heap.data == NULL);
+  assert (mstr.sso.flg == MSTR_FLG_SSO);
 
   /* all in heap */
   assert (mstr_reserve (&mstr, sso_cap * 2));
@@ -93,14 +92,14 @@ test_cat_char (void)
   for (int i = 0; i < 22; i++)
     assert (mstr_cat_char (&mstr, 'a' + i));
 
-  assert (mstr.sso.flg == true);
   assert (mstr.sso.len == 22);
+  assert (mstr.sso.flg == MSTR_FLG_SSO);
 
   /* heap */
   assert (mstr_cat_char (&mstr, 'a' + 22));
 
-  assert (mstr.sso.flg == false);
   assert (mstr.heap.len == 23);
+  assert (mstr.sso.flg == MSTR_FLG_HEAP);
 
   mstr_free (&mstr);
 }
@@ -116,14 +115,14 @@ test_cat_cstr (void)
     assert (mstr_cat_cstr (&mstr, "abcd"));
   assert (mstr_cat_cstr (&mstr, "ab"));
 
-  assert (mstr.sso.flg == true);
   assert (mstr.sso.len == 22);
+  assert (mstr.sso.flg == MSTR_FLG_SSO);
 
   /* heap */
   assert (mstr_cat_cstr (&mstr, "cd"));
 
-  assert (mstr.sso.flg == false);
   assert (mstr.heap.len == 24);
+  assert (mstr.sso.flg == MSTR_FLG_HEAP);
 
   mstr_free (&mstr);
 }
@@ -143,8 +142,8 @@ test_cat_byte (void)
   for (int i = 0; i < 5; i++)
     assert (mstr_cat_byte (&mstr, (mstr_byte_t *)"abcd", 4));
 
-  assert (mstr.sso.flg == false);
   assert (mstr.heap.len == 32);
+  assert (mstr.sso.flg == MSTR_FLG_HEAP);
 
   mstr_free (&mstr);
 }
@@ -181,13 +180,13 @@ test_assign_cstr (void)
   /* all in sso */
   assert (mstr_assign_cstr (&mstr, "hello world! hello c!"));
   assert (mstr_assign_cstr (&mstr, "hello world!"));
-  assert (mstr.sso.flg == true);
+  assert (mstr.sso.flg == MSTR_FLG_SSO);
   assert (mstr.sso.len == 12);
 
   /* all in heap */
   assert (mstr_assign_cstr (&mstr, "hello world! hello mstr! hello c!"));
   assert (mstr_assign_cstr (&mstr, "hello world!"));
-  assert (mstr.sso.flg == false);
+  assert (mstr.sso.flg == MSTR_FLG_HEAP);
   assert (mstr.heap.len == 12);
 
   mstr_free (&mstr);
@@ -209,13 +208,13 @@ test_assign_byte (void)
   /* all in sso */
   assert (mstr_assign_cstr (&mstr, "hello world! hello c!"));
   assert (mstr_assign_cstr (&mstr, "hello world!"));
-  assert (mstr.sso.flg == true);
+  assert (mstr.sso.flg == MSTR_FLG_SSO);
   assert (mstr.sso.len == 12);
 
   /* all in heap */
   assert (mstr_assign_cstr (&mstr, "hello world! hello mstr! hello c!"));
   assert (mstr_assign_cstr (&mstr, "hello world!"));
-  assert (mstr.sso.flg == false);
+  assert (mstr.sso.flg == MSTR_FLG_HEAP);
   assert (mstr.heap.len == 12);
 
   mstr_free (&mstr);
