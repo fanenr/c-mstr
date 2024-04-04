@@ -209,7 +209,7 @@ mstr_start_with_byte (const mstr_t *str, const mstr_byte_t *src, size_t slen)
   if (slen > len_of (str))
     return false;
 
-  return memcmp (data_of (str), src, slen);
+  return memcmp (data_of (str), src, slen) == 0;
 }
 
 bool
@@ -237,8 +237,8 @@ mstr_end_with_byte (const mstr_t *str, const mstr_byte_t *src, size_t slen)
   if (slen > len_of (str))
     return false;
 
-  const char *data = data_of (str) + len_of (str) - slen;
-  return memcmp (data, src, slen);
+  const char *pos = data_of (str) + len_of (str) - slen;
+  return memcmp (pos, src, slen) == 0;
 }
 
 int
@@ -258,10 +258,10 @@ mstr_cmp_byte (const mstr_t *str, const mstr_byte_t *src, size_t slen)
 {
   size_t len = len_of (str);
   const char *data = data_of (str);
-  int cmp = memcmp (data, src, slen > len ? len : slen);
+  int cmp_ret = memcmp (data, src, slen > len ? len : slen);
 
-  if (cmp != 0 || slen == len)
-    return cmp;
+  if (cmp_ret != 0 || slen == len)
+    return cmp_ret;
   return len > slen ? 1 : -1;
 }
 
