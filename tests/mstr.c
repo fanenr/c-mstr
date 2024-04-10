@@ -39,8 +39,7 @@ main (void)
 static void
 test_init (void)
 {
-  mstr_t mstr;
-  mstr_init (&mstr);
+  mstr_t mstr = MSTR_INIT;
 
   assert (mstr.heap.cap % 2);
   assert (mstr.heap.len == 0);
@@ -50,8 +49,7 @@ test_init (void)
 static void
 test_free (void)
 {
-  mstr_t mstr;
-  mstr_init (&mstr);
+  mstr_t mstr = MSTR_INIT;
 
   mstr_free (&mstr);
 }
@@ -59,8 +57,7 @@ test_free (void)
 static void
 test_reserve (void)
 {
-  mstr_t mstr;
-  mstr_init (&mstr);
+  mstr_t mstr = MSTR_INIT;
 
   /* all in sso */
   const int sso_cap = sizeof (mstr_t) - sizeof (char);
@@ -85,8 +82,7 @@ test_reserve (void)
 static void
 test_cat_char (void)
 {
-  mstr_t mstr;
-  mstr_init (&mstr);
+  mstr_t mstr = MSTR_INIT;
 
   /* sso */
   for (int i = 0; i < 22; i++)
@@ -107,8 +103,7 @@ test_cat_char (void)
 static void
 test_cat_cstr (void)
 {
-  mstr_t mstr;
-  mstr_init (&mstr);
+  mstr_t mstr = MSTR_INIT;
 
   /* sso */
   for (int i = 0; i < 5; i++)
@@ -130,8 +125,7 @@ test_cat_cstr (void)
 static void
 test_cat_byte (void)
 {
-  mstr_t mstr;
-  mstr_init (&mstr);
+  mstr_t mstr = MSTR_INIT;
 
   assert (mstr_cat_byte (&mstr, (mstr_byte_t *)"abc\0d", 6));
   assert (mstr_cat_byte (&mstr, (mstr_byte_t *)"abc\0\0", 6));
@@ -151,8 +145,7 @@ test_cat_byte (void)
 static void
 test_assign_char (void)
 {
-  mstr_t mstr;
-  mstr_init (&mstr);
+  mstr_t mstr = MSTR_INIT;
 
   /* all in sso */
   assert (mstr_assign_char (&mstr, 'a'));
@@ -174,8 +167,7 @@ test_assign_char (void)
 static void
 test_assign_cstr (void)
 {
-  mstr_t mstr;
-  mstr_init (&mstr);
+  mstr_t mstr = MSTR_INIT;
 
   /* all in sso */
   assert (mstr_assign_cstr (&mstr, "hello world! hello c!"));
@@ -195,8 +187,7 @@ test_assign_cstr (void)
 static void
 test_assign_byte (void)
 {
-  mstr_t mstr;
-  mstr_init (&mstr);
+  mstr_t mstr = MSTR_INIT;
 
   assert (mstr_assign_byte (&mstr, (mstr_byte_t *)"abcdef\0a", 9));
   assert (mstr.sso.len == 9);
@@ -223,8 +214,7 @@ test_assign_byte (void)
 static void
 test_remove (void)
 {
-  mstr_t mstr;
-  mstr_init (&mstr);
+  mstr_t mstr = MSTR_INIT;
 
   mstr_assign_cstr (&mstr, "Hello World!");
   assert (mstr_remove (&mstr, 12, 0));
@@ -239,9 +229,8 @@ test_remove (void)
 static void
 test_substr (void)
 {
-  mstr_t mstr, sub;
-  mstr_init (&mstr);
-  mstr_init (&sub);
+  mstr_t mstr = MSTR_INIT;
+  mstr_t sub = MSTR_INIT;
 
   mstr_assign_cstr (&mstr, "Hello World!");
   assert (!mstr_substr (&sub, &mstr, 12, 1));
