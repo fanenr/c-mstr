@@ -1,14 +1,7 @@
 #include "mstr.h"
-#include <string.h>
 
-#ifndef MSTR_MEM
 #include <stdlib.h>
-#define mstr_mem_free free
-#define mstr_mem_malloc malloc
-#define mstr_mem_realloc realloc
-#else
-#include "mstr_mem.h"
-#endif
+#include <string.h>
 
 #define set_len(STR, LEN)                                                     \
   do                                                                          \
@@ -24,7 +17,7 @@ void
 mstr_free (mstr_t *str)
 {
   if (mstr_is_heap (str))
-    mstr_mem_free (str->heap.data);
+    free (str->heap.data);
   *str = MSTR_INIT;
 }
 
@@ -66,20 +59,20 @@ mstr_reserve (mstr_t *dest, size_t cap)
 
   if (mstr_is_heap (dest))
     {
-      newdata = mstr_mem_realloc (dest->heap.data, newcap);
+      newdata = realloc (dest->heap.data, newcap);
       if (!newdata)
         return NULL;
     }
   else
     {
-      if (!(newdata = mstr_mem_malloc (newcap)))
+      if (!(newdata = malloc (newcap)))
         return NULL;
 
       /* copy to heap */
       size_t len = dest->sso.len;
       if (memcpy (newdata, dest->sso.data, len + 1) != newdata)
         { /* copy failed */
-          mstr_mem_free (newdata);
+          free (newdata);
           return NULL;
         }
 
