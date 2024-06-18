@@ -5,12 +5,10 @@
 
 #define set_len(str, new)                                                     \
   do                                                                          \
-    {                                                                         \
-      if (!mstr_is_sso (str))                                                 \
-        (str)->heap.len = new;                                                \
-      else                                                                    \
-        (str)->sso.len = new;                                                 \
-    }                                                                         \
+    if (!mstr_is_sso (str))                                                   \
+      (str)->heap.len = new;                                                  \
+    else                                                                      \
+      (str)->sso.len = new;                                                   \
   while (0)
 
 void
@@ -21,16 +19,11 @@ mstr_free (mstr_t *str)
   *str = MSTR_INIT;
 }
 
-char *
-mstr_release (mstr_t *str)
+void
+mstr_clear (mstr_t *str)
 {
-  if (mstr_is_sso (str))
-    /* sso mstr can not be released */
-    return NULL;
-
-  char *data = str->heap.data;
-  *str = MSTR_INIT;
-  return data;
+  *mstr_data (str) = '\0';
+  set_len (str, 0);
 }
 
 mstr_t *
@@ -51,8 +44,7 @@ mstr_reserve (mstr_t *str, size_t cap)
 
   if (mstr_is_heap (str))
     {
-      newdata = realloc (str->heap.data, newcap);
-      if (!newdata)
+      if (!(newdata = realloc (str->heap.data, newcap)))
         return NULL;
     }
   else
@@ -93,11 +85,10 @@ mstr_remove (mstr_t *str, size_t start, size_t n)
   if (n > len - start)
     n = len - start;
 
-  char *rmst = data + start;
-  char *cpst = rmst + n;
-  size_t cplen = len - start - n + 1;
+  char *dest = data + start;
+  char *src = dest + n;
 
-  if (memmove (rmst, cpst, cplen) != rmst)
+  if (memmove (dest, src, len - start - n + 1) != dest)
     /* move failed */
     return NULL;
 
@@ -105,25 +96,12 @@ mstr_remove (mstr_t *str, size_t start, size_t n)
   return str;
 }
 
-void
-mstr_swap (mstr_t *a, mstr_t *b)
-{
-  mstr_t c = *a;
-  *a = *b;
-  *b = c;
-}
-
-void
-mstr_move (mstr_t *new, mstr_t *old)
-{
-  mstr_free (new);
-  *new = *old;
-  *old = MSTR_INIT;
-}
-
 mstr_t *
 mstr_substr (mstr_t *save, const mstr_t *from, size_t start, size_t n)
 {
+  if (!n)
+    return NULL;
+
   size_t len = mstr_len (from);
   const char *pos = mstr_data (from) + start;
 
@@ -134,32 +112,32 @@ mstr_substr (mstr_t *save, const mstr_t *from, size_t start, size_t n)
   if (n > len - start)
     n = len - start;
 
-  return mstr_assign_byte (save, (const mstr_byte_t *)pos, n);
+  return mstr_assign_byte (save, (void *)pos, n);
 }
 
 bool
 mstr_start_with_char (const mstr_t *str, char ch)
 {
-  return mstr_start_with_byte (str, (const mstr_byte_t *)&ch, 1);
+  return mstr_start_with_byte (str, (void *)&ch, 1);
 }
 
 bool
 mstr_start_with_cstr (const mstr_t *str, const char *cstr)
 {
-  return mstr_start_with_byte (str, (const mstr_byte_t *)cstr, strlen (cstr));
+  return mstr_start_with_byte (str, (void *)cstr, strlen (cstr));
 }
 
 bool
 mstr_start_with_mstr (const mstr_t *str, const mstr_t *other)
 {
-  return mstr_start_with_byte (str, (const mstr_byte_t *)mstr_data (other),
+  return mstr_start_with_byte (str, (void *)mstr_data (other),
                                mstr_len (other));
 }
 
 bool
 mstr_start_with_byte (const mstr_t *str, const mstr_byte_t *src, size_t n)
 {
-  if (n > mstr_len (str))
+  if (!n || n > mstr_len (str))
     return false;
 
   return memcmp (mstr_data (str), src, n) == 0;
@@ -168,26 +146,25 @@ mstr_start_with_byte (const mstr_t *str, const mstr_byte_t *src, size_t n)
 bool
 mstr_end_with_char (const mstr_t *str, char ch)
 {
-  return mstr_end_with_byte (str, (const mstr_byte_t *)&ch, 1);
+  return mstr_end_with_byte (str, (void *)&ch, 1);
 }
 
 bool
 mstr_end_with_cstr (const mstr_t *str, const char *cstr)
 {
-  return mstr_end_with_byte (str, (const mstr_byte_t *)cstr, strlen (cstr));
+  return mstr_end_with_byte (str, (void *)cstr, strlen (cstr));
 }
 
 bool
 mstr_end_with_mstr (const mstr_t *str, const mstr_t *other)
 {
-  return mstr_end_with_byte (str, (const mstr_byte_t *)mstr_data (other),
-                             mstr_len (other));
+  return mstr_end_with_byte (str, (void *)mstr_data (other), mstr_len (other));
 }
 
 bool
 mstr_end_with_byte (const mstr_t *str, const mstr_byte_t *src, size_t n)
 {
-  if (n > mstr_len (str))
+  if (!n || n > mstr_len (str))
     return false;
 
   const char *pos = mstr_data (str) + mstr_len (str) - n;
@@ -195,47 +172,54 @@ mstr_end_with_byte (const mstr_t *str, const mstr_byte_t *src, size_t n)
 }
 
 int
+mstr_cmp_char (const mstr_t *str, char ch)
+{
+  return mstr_cmp_byte (str, (void *)&ch, 1);
+}
+
+int
 mstr_cmp_cstr (const mstr_t *str, const char *cstr)
 {
-  return mstr_cmp_byte (str, (const mstr_byte_t *)cstr, strlen (cstr));
+  return mstr_cmp_byte (str, (void *)cstr, strlen (cstr));
 }
 
 int
 mstr_cmp_mstr (const mstr_t *str, const mstr_t *other)
 {
-  return mstr_cmp_byte (str, (const mstr_byte_t *)mstr_data (other),
-                        mstr_len (other));
+  return mstr_cmp_byte (str, (void *)mstr_data (other), mstr_len (other));
 }
 
 int
 mstr_cmp_byte (const mstr_t *str, const mstr_byte_t *src, size_t n)
 {
+  if (!n)
+    return 0;
+
   size_t len = mstr_len (str);
   const char *data = mstr_data (str);
-  int cmp_ret = memcmp (data, src, n > len ? len : n);
+  int ret = memcmp (data, src, n > len ? len : n);
 
-  if (cmp_ret != 0 || n == len)
-    return cmp_ret;
+  if (ret != 0 || n == len)
+    return ret;
   return len > n ? 1 : -1;
 }
 
 mstr_t *
 mstr_cat_char (mstr_t *str, char ch)
 {
-  return mstr_cat_byte (str, (const mstr_byte_t *)&ch, 1);
+  return mstr_cat_byte (str, (void *)&ch, 1);
 }
 
 mstr_t *
 mstr_cat_cstr (mstr_t *str, const char *cstr)
 {
-  return mstr_cat_byte (str, (const mstr_byte_t *)cstr, strlen (cstr));
+  return mstr_cat_byte (str, (void *)cstr, strlen (cstr));
 }
 
 mstr_t *
 mstr_cat_mstr (mstr_t *str, const mstr_t *other)
 {
-  return mstr_cat_byte (str, (const mstr_byte_t *)mstr_data (other),
-                        mstr_len (other));
+  return mstr_cat_byte (str, (void *)mstr_data (other), mstr_len (other));
 }
 
 mstr_t *
@@ -249,12 +233,65 @@ mstr_cat_byte (mstr_t *str, const mstr_byte_t *src, size_t n)
     /* allocate failed */
     return NULL;
 
-  char *ctpos = mstr_data (str) + len;
-  if (memcpy (ctpos, src, n) != ctpos)
+  char *dest = mstr_data (str) + len;
+  if (memcpy (dest, src, n) != dest)
     /* copy failed */
     return NULL;
   /* save NULL */
-  ctpos[n] = '\0';
+  dest[n] = '\0';
+
+  set_len (str, len + n);
+  return str;
+}
+
+mstr_t *
+mstr_insert_char (mstr_t *str, size_t pos, char ch)
+{
+  return mstr_insert_byte (str, pos, (void *)&ch, 1);
+}
+
+mstr_t *
+mstr_insert_cstr (mstr_t *str, size_t pos, const char *cstr)
+{
+  return mstr_insert_byte (str, pos, (void *)cstr, strlen (cstr));
+}
+
+mstr_t *
+mstr_insert_mstr (mstr_t *str, size_t pos, const mstr_t *other)
+{
+  return mstr_insert_byte (str, pos, (void *)mstr_data (other),
+                           mstr_len (other));
+}
+
+mstr_t *
+mstr_insert_byte (mstr_t *str, size_t pos, const mstr_byte_t *src, size_t n)
+{
+  if (!n)
+    return str;
+
+  size_t len = mstr_len (str);
+
+  if (pos > len)
+    return NULL;
+
+  if (pos == len)
+    return mstr_cat_byte (str, src, n);
+
+  if (mstr_reserve (str, len + n + 1) != str)
+    /* allocate failed */
+    return NULL;
+
+  char *data = mstr_data (str);
+  char *start = data + pos;
+  char *dest = start + n;
+
+  if (memmove (dest, start, len - pos + 1) != dest)
+    /* move failed */
+    return NULL;
+
+  if (memcpy (start, src, n) != start)
+    /* copy failed */
+    return NULL;
 
   set_len (str, len + n);
   return str;
@@ -263,31 +300,26 @@ mstr_cat_byte (mstr_t *str, const mstr_byte_t *src, size_t n)
 mstr_t *
 mstr_assign_char (mstr_t *str, char ch)
 {
-  return mstr_assign_byte (str, (const mstr_byte_t *)&ch, 1);
+  return mstr_assign_byte (str, (void *)&ch, 1);
 }
 
 mstr_t *
 mstr_assign_cstr (mstr_t *str, const char *cstr)
 {
-  return mstr_assign_byte (str, (const mstr_byte_t *)cstr, strlen (cstr));
+  return mstr_assign_byte (str, (void *)cstr, strlen (cstr));
 }
 
 mstr_t *
 mstr_assign_mstr (mstr_t *str, const mstr_t *other)
 {
-  return mstr_assign_byte (str, (const mstr_byte_t *)mstr_data (other),
-                           mstr_len (other));
+  return mstr_assign_byte (str, (void *)mstr_data (other), mstr_len (other));
 }
 
 mstr_t *
 mstr_assign_byte (mstr_t *str, const mstr_byte_t *src, size_t n)
 {
   if (!n)
-    {
-      mstr_data (str)[0] = '\0';
-      set_len (str, 0);
-      return str;
-    }
+    return str;
 
   if (mstr_reserve (str, n + 1) != str)
     /* allocate failed */
@@ -297,6 +329,7 @@ mstr_assign_byte (mstr_t *str, const mstr_byte_t *src, size_t n)
   if (memcpy (data, src, n) != data)
     /* copy failed */
     return NULL;
+  /* save NULL */
   data[n] = '\0';
 
   set_len (str, n);
