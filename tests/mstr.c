@@ -10,6 +10,10 @@ static void test_cat_char (void);
 static void test_cat_cstr (void);
 static void test_cat_byte (void);
 
+static void test_insert_char (void);
+static void test_insert_cstr (void);
+static void test_insert_byte (void);
+
 static void test_assign_char (void);
 static void test_assign_cstr (void);
 static void test_assign_byte (void);
@@ -27,6 +31,10 @@ main (void)
   test_cat_char ();
   test_cat_cstr ();
   test_cat_byte ();
+
+  test_insert_char ();
+  test_insert_cstr ();
+  test_insert_byte ();
 
   test_assign_char ();
   test_assign_cstr ();
@@ -135,6 +143,69 @@ test_cat_byte (void)
   /* heap after the last loop */
   for (int i = 0; i < 5; i++)
     assert (mstr_cat_byte (&mstr, (mstr_byte_t *)"abcd", 4));
+
+  assert (mstr.heap.len == 32);
+  assert (mstr.sso.flg == MSTR_FLG_HEAP);
+
+  mstr_free (&mstr);
+}
+
+static void
+test_insert_char (void)
+{
+  mstr_t mstr = MSTR_INIT;
+
+  /* sso */
+  for (int i = 0; i < 22; i++)
+    assert (mstr_insert_char (&mstr, i, 'a' + i));
+
+  assert (mstr.sso.len == 22);
+  assert (mstr.sso.flg == MSTR_FLG_SSO);
+
+  /* heap */
+  assert (mstr_insert_char (&mstr, 0, 'a' + 22));
+
+  assert (mstr.heap.len == 23);
+  assert (mstr.sso.flg == MSTR_FLG_HEAP);
+
+  mstr_free (&mstr);
+}
+
+static void
+test_insert_cstr (void)
+{
+  mstr_t mstr = MSTR_INIT;
+
+  /* sso */
+  for (int i = 0; i < 5; i++)
+    assert (mstr_insert_cstr (&mstr, i * 4, "abcd"));
+  assert (mstr_insert_cstr (&mstr, 0, "ab"));
+
+  assert (mstr.sso.len == 22);
+  assert (mstr.sso.flg == MSTR_FLG_SSO);
+
+  /* heap */
+  assert (mstr_insert_cstr (&mstr, 2, "cd"));
+
+  assert (mstr.heap.len == 24);
+  assert (mstr.sso.flg == MSTR_FLG_HEAP);
+
+  mstr_free (&mstr);
+}
+
+static void
+test_insert_byte (void)
+{
+  mstr_t mstr = MSTR_INIT;
+
+  assert (mstr_insert_byte (&mstr, 0, (mstr_byte_t *)"abc\0d", 6));
+  assert (mstr_insert_byte (&mstr, 0, (mstr_byte_t *)"abc\0\0", 6));
+  assert (mstr.sso.flg == true);
+  assert (mstr.sso.len == 12);
+
+  /* heap after the last loop */
+  for (int i = 0; i < 5; i++)
+    assert (mstr_insert_byte (&mstr, 0, (mstr_byte_t *)"abcd", 4));
 
   assert (mstr.heap.len == 32);
   assert (mstr.sso.flg == MSTR_FLG_HEAP);
