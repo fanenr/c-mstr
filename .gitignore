@@ -1,5 +1,12 @@
-.cache/
-
+# object file
 *.o
-tests/mstr
+
+# exe file
+test
+
+# other
 compile_commands.json
+
+# directory
+!/**/
+/.cache/
