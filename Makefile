@@ -1,29 +1,23 @@
-LDFLAGS = -g -lasan
-NOWARN  = -Wno-unused-variable -Wno-unused-function
-CFLAGS  = -Wall -Wextra $(NOWARN) -ggdb3 -std=gnu11 -fsanitize=address
+include config.mk
 export LDFLAGS CFLAGS
 
-targets := mstr
-objects := $(targets:%=%.o)
-export targets objects
-
 .PHONY: all
-all: $(objects)
+all: test
 
-$(objects): %.o: %.c %.h
-	gcc $(CFLAGS) -c $< 
+test: test.o mstr.o
+	gcc $(LDFLAGS) -o $@ $^
 
-.PHONY: test run
-test: $(objects)
-	cd tests && make
+%.o: %.c
+	gcc $(CFLAGS) -c $<
 
-run: $(objects)
-	cd tests && make run
+.PHONY: run
+run: test
+	./test
 
 .PHONY: json
-json:
-	make clean && bear -- make test
+json: clean
+	bear -- make test
 
 .PHONY: clean
 clean:
-	-rm -f *.o && cd tests && make clean
+	-rm -f *.o test

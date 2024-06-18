@@ -1,4 +1,4 @@
-#include "../mstr.h"
+#include "mstr.h"
 #include <assert.h>
 #include <stdbool.h>
 
