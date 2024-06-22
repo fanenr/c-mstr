@@ -135,14 +135,14 @@ test_cat_byte (void)
 {
   mstr_t mstr = MSTR_INIT;
 
-  assert (mstr_cat_byte (&mstr, (mstr_byte_t *)"abc\0d", 6));
-  assert (mstr_cat_byte (&mstr, (mstr_byte_t *)"abc\0\0", 6));
+  assert (mstr_cat_byte (&mstr, "abc\0d", 6));
+  assert (mstr_cat_byte (&mstr, "abc\0\0", 6));
   assert (mstr.sso.flg == true);
   assert (mstr.sso.len == 12);
 
   /* heap after the last loop */
   for (int i = 0; i < 5; i++)
-    assert (mstr_cat_byte (&mstr, (mstr_byte_t *)"abcd", 4));
+    assert (mstr_cat_byte (&mstr, "abcd", 4));
 
   assert (mstr.heap.len == 32);
   assert (mstr.sso.flg == MSTR_FLG_HEAP);
@@ -198,14 +198,14 @@ test_insert_byte (void)
 {
   mstr_t mstr = MSTR_INIT;
 
-  assert (mstr_insert_byte (&mstr, 0, (mstr_byte_t *)"abc\0d", 6));
-  assert (mstr_insert_byte (&mstr, 0, (mstr_byte_t *)"abc\0\0", 6));
+  assert (mstr_insert_byte (&mstr, 0, "abc\0d", 6));
+  assert (mstr_insert_byte (&mstr, 0, "abc\0\0", 6));
   assert (mstr.sso.flg == true);
   assert (mstr.sso.len == 12);
 
   /* heap after the last loop */
   for (int i = 0; i < 5; i++)
-    assert (mstr_insert_byte (&mstr, 0, (mstr_byte_t *)"abcd", 4));
+    assert (mstr_insert_byte (&mstr, 0, "abcd", 4));
 
   assert (mstr.heap.len == 32);
   assert (mstr.sso.flg == MSTR_FLG_HEAP);
@@ -260,11 +260,11 @@ test_assign_byte (void)
 {
   mstr_t mstr = MSTR_INIT;
 
-  assert (mstr_assign_byte (&mstr, (mstr_byte_t *)"abcdef\0a", 9));
+  assert (mstr_assign_byte (&mstr, "abcdef\0a", 9));
   assert (mstr.sso.len == 9);
-  assert (mstr_assign_byte (&mstr, (mstr_byte_t *)"abcdef\0", 8));
+  assert (mstr_assign_byte (&mstr, "abcdef\0", 8));
   assert (mstr.sso.len == 8);
-  assert (mstr_assign_byte (&mstr, (mstr_byte_t *)"abcdef\0", 6));
+  assert (mstr_assign_byte (&mstr, "abcdef\0", 6));
   assert (mstr.sso.len == 6);
 
   /* all in sso */
