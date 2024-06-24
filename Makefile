@@ -1,3 +1,5 @@
+MODE = debug
+
 include config.mk
 export LDFLAGS CFLAGS
 
