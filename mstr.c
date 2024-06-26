@@ -135,15 +135,15 @@ mstr_trim (mstr_t *str)
   char *data = mstr_data (str);
   char *end = data + len - 1;
   char *start = data;
-  ptrdiff_t newlen;
+  size_t newlen;
 
   for (; start <= end && isspace (*start);)
     start++;
   for (; end >= start && isspace (*end);)
     end--;
-  if ((newlen = end - start + 1) <= 0)
+  if (!(newlen = end - start + 1))
     return mstr_clear (str);
-  if ((size_t)newlen == len)
+  if (newlen == len)
     return;
 
   if (memmove (data, start, newlen) == data)
@@ -161,13 +161,13 @@ mstr_ltrim (mstr_t *str)
   char *data = mstr_data (str);
   char *end = data + len - 1;
   char *start = data;
-  ptrdiff_t newlen;
+  size_t newlen;
 
   for (; start <= end && isspace (*start);)
     start++;
-  if ((newlen = end - start + 1) <= 0)
+  if (!(newlen = end - start + 1))
     return mstr_clear (str);
-  if ((size_t)newlen == len)
+  if (newlen == len)
     return;
 
   if (memmove (data, start, newlen) == data)
@@ -185,13 +185,13 @@ mstr_rtrim (mstr_t *str)
   char *data = mstr_data (str);
   char *end = data + len - 1;
   char *start = data;
-  ptrdiff_t newlen;
+  size_t newlen;
 
   for (; end >= start && isspace (*end);)
     end--;
-  if ((newlen = end - start + 1) <= 0)
+  if (!(newlen = end - start + 1))
     return mstr_clear (str);
-  if ((size_t)newlen == len)
+  if (newlen == len)
     return;
 
   if (memmove (data, start, newlen) == data)
