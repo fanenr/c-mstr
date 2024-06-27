@@ -274,16 +274,17 @@ mstr_cmp_mstr (const mstr_t *str, const mstr_t *other)
 int
 mstr_cmp_byte (const mstr_t *str, const void *src, size_t n)
 {
-  if (!n)
+  size_t len = mstr_len (str);
+
+  if (!n || !len)
     return 0;
 
-  size_t len = mstr_len (str);
   const char *data = mstr_data (str);
   int ret = memcmp (data, src, n > len ? len : n);
 
   if (ret != 0 || n == len)
     return ret;
-  return len > n ? 1 : -1;
+  return n < len ? 1 : -1;
 }
 
 int
@@ -307,16 +308,17 @@ mstr_icmp_mstr (const mstr_t *str, const mstr_t *other)
 int
 mstr_icmp_byte (const mstr_t *str, const void *src, size_t n)
 {
-  if (!n)
+  size_t len = mstr_len (str);
+
+  if (!n || !len)
     return 0;
 
-  size_t len = mstr_len (str);
   const char *data = mstr_data (str);
   int ret = strncasecmp (data, src, n > len ? len : n);
 
   if (ret != 0 || n == len)
     return ret;
-  return len > n ? 1 : -1;
+  return n < len ? 1 : -1;
 }
 
 mstr_t *
