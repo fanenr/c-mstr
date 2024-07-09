@@ -60,13 +60,20 @@ extern void mstr_clear (mstr_t *str) attr_nonnull (1);
 
 extern mstr_t *mstr_reserve (mstr_t *str, size_t cap) attr_nonnull (1);
 
-/* remove & substr */
+/* remove */
 
 extern mstr_t *mstr_remove (mstr_t *str, size_t start, size_t n)
     attr_nonnull (1);
 
+/* substr */
+
 extern mstr_t *mstr_substr (mstr_t *save, const mstr_t *from, size_t start,
                             size_t n) attr_nonnull (1, 2);
+
+/* format */
+
+extern mstr_t *mstr_format (mstr_t *str, const char *fmt, ...)
+    attr_nonnull (1, 2) __attribute__ ((format (printf, 2, 3)));
 
 /* trim */
 

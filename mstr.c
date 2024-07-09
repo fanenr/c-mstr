@@ -1,6 +1,8 @@
 #include "mstr.h"
 
 #include <ctype.h>
+#include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -122,6 +124,46 @@ mstr_substr (mstr_t *save, const mstr_t *from, size_t start, size_t n)
     n = len - start;
 
   return mstr_assign_byte (save, pos, n);
+}
+
+mstr_t *
+mstr_format (mstr_t *str, const char *fmt, ...)
+{
+  va_list ap, copy;
+  va_start (ap, fmt);
+  va_copy (copy, ap);
+
+  mstr_t *ret = NULL;
+  mstr_t new = MSTR_INIT;
+  size_t cap = MSTR_SSO_CAP;
+  int need = vsnprintf (new.sso.data, cap, fmt, ap);
+
+  if (need < 0)
+    goto err;
+
+  if ((size_t)need >= cap)
+    {
+      cap = need + 1;
+      if (mstr_reserve (&new, cap) != &new)
+        goto err;
+      if (vsnprintf (new.heap.data, cap, fmt, copy) < 0)
+        goto err;
+    }
+
+  set_len (&new, need);
+  mstr_free (str);
+  *str = new;
+
+  ret = str;
+  goto ret;
+
+err:
+  mstr_free (&new);
+
+ret:
+  va_end (copy);
+  va_end (ap);
+  return ret;
 }
 
 void

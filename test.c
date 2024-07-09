@@ -20,6 +20,7 @@ static void test_assign_byte (void);
 
 static void test_remove (void);
 static void test_substr (void);
+static void test_format (void);
 
 int
 main (void)
@@ -42,6 +43,7 @@ main (void)
 
   test_remove ();
   test_substr ();
+  test_format ();
 }
 
 static void
@@ -312,4 +314,18 @@ test_substr (void)
 
   mstr_free (&mstr);
   mstr_free (&sub);
+}
+
+static void
+test_format (void)
+{
+  mstr_t mstr = MSTR_INIT;
+
+  assert (mstr_format (&mstr, "%d", 123));
+  assert (mstr_cmp_cstr (&mstr, "123") == 0);
+
+  assert (mstr_format (&mstr, "Hello %s! %s World!", "World", "Hello"));
+  assert (mstr_cmp_cstr (&mstr, "Hello World! Hello World!") == 0);
+
+  mstr_free (&mstr);
 }
