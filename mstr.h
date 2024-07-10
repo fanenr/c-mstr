@@ -79,10 +79,6 @@ extern mstr_t *mstr_format (mstr_t *str, const char *fmt, ...)
 
 extern void mstr_trim (mstr_t *str) attr_nonnull (1);
 
-extern void mstr_ltrim (mstr_t *str) attr_nonnull (1);
-
-extern void mstr_rtrim (mstr_t *str) attr_nonnull (1);
-
 /* is start with */
 
 extern bool mstr_start_with_char (const mstr_t *str, char ch) attr_nonnull (1);

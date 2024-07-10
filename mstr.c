@@ -183,54 +183,7 @@ mstr_trim (mstr_t *str)
     start++;
   for (; end >= start && isspace (*end);)
     end--;
-  if (!(newlen = end - start + 1))
-    return mstr_clear (str);
-  if (newlen == len)
-    return;
 
-  if (memmove (data, start, newlen) == data)
-    set_len (str, newlen);
-}
-
-void
-mstr_ltrim (mstr_t *str)
-{
-  size_t len;
-
-  if (!(len = mstr_len (str)))
-    return;
-
-  char *data = mstr_data (str);
-  char *end = data + len - 1;
-  char *start = data;
-  size_t newlen;
-
-  for (; start <= end && isspace (*start);)
-    start++;
-  if (!(newlen = end - start + 1))
-    return mstr_clear (str);
-  if (newlen == len)
-    return;
-
-  if (memmove (data, start, newlen) == data)
-    set_len (str, newlen);
-}
-
-void
-mstr_rtrim (mstr_t *str)
-{
-  size_t len;
-
-  if (!(len = mstr_len (str)))
-    return;
-
-  char *data = mstr_data (str);
-  char *end = data + len - 1;
-  char *start = data;
-  size_t newlen;
-
-  for (; end >= start && isspace (*end);)
-    end--;
   if (!(newlen = end - start + 1))
     return mstr_clear (str);
   if (newlen == len)
