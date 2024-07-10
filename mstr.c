@@ -4,7 +4,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #define set_len(str, new)                                                     \
   do                                                                          \
@@ -194,48 +193,12 @@ mstr_trim (mstr_t *str)
 }
 
 bool
-mstr_start_with_char (const mstr_t *str, char ch)
-{
-  return mstr_start_with_byte (str, &ch, 1);
-}
-
-bool
-mstr_start_with_cstr (const mstr_t *str, const char *cstr)
-{
-  return mstr_start_with_byte (str, cstr, strlen (cstr));
-}
-
-bool
-mstr_start_with_mstr (const mstr_t *str, const mstr_t *other)
-{
-  return mstr_start_with_byte (str, mstr_data (other), mstr_len (other));
-}
-
-bool
 mstr_start_with_byte (const mstr_t *str, const void *src, size_t n)
 {
   if (!n || n > mstr_len (str))
     return false;
 
   return memcmp (mstr_data (str), src, n) == 0;
-}
-
-bool
-mstr_end_with_char (const mstr_t *str, char ch)
-{
-  return mstr_end_with_byte (str, &ch, 1);
-}
-
-bool
-mstr_end_with_cstr (const mstr_t *str, const char *cstr)
-{
-  return mstr_end_with_byte (str, cstr, strlen (cstr));
-}
-
-bool
-mstr_end_with_mstr (const mstr_t *str, const mstr_t *other)
-{
-  return mstr_end_with_byte (str, mstr_data (other), mstr_len (other));
 }
 
 bool
@@ -246,24 +209,6 @@ mstr_end_with_byte (const mstr_t *str, const void *src, size_t n)
 
   const char *pos = mstr_data (str) + mstr_len (str) - n;
   return memcmp (pos, src, n) == 0;
-}
-
-int
-mstr_cmp_char (const mstr_t *str, char ch)
-{
-  return mstr_cmp_byte (str, &ch, 1);
-}
-
-int
-mstr_cmp_cstr (const mstr_t *str, const char *cstr)
-{
-  return mstr_cmp_byte (str, cstr, strlen (cstr));
-}
-
-int
-mstr_cmp_mstr (const mstr_t *str, const mstr_t *other)
-{
-  return mstr_cmp_byte (str, mstr_data (other), mstr_len (other));
 }
 
 int
@@ -283,24 +228,6 @@ mstr_cmp_byte (const mstr_t *str, const void *src, size_t n)
 }
 
 int
-mstr_icmp_char (const mstr_t *str, char ch)
-{
-  return mstr_icmp_byte (str, &ch, 1);
-}
-
-int
-mstr_icmp_cstr (const mstr_t *str, const char *cstr)
-{
-  return mstr_icmp_byte (str, cstr, strlen (cstr));
-}
-
-int
-mstr_icmp_mstr (const mstr_t *str, const mstr_t *other)
-{
-  return mstr_icmp_byte (str, mstr_data (other), mstr_len (other));
-}
-
-int
 mstr_icmp_byte (const mstr_t *str, const void *src, size_t n)
 {
   size_t len = mstr_len (str);
@@ -314,24 +241,6 @@ mstr_icmp_byte (const mstr_t *str, const void *src, size_t n)
   if (ret != 0 || n == len)
     return ret;
   return n < len ? 1 : -1;
-}
-
-mstr_t *
-mstr_cat_char (mstr_t *str, char ch)
-{
-  return mstr_cat_byte (str, &ch, 1);
-}
-
-mstr_t *
-mstr_cat_cstr (mstr_t *str, const char *cstr)
-{
-  return mstr_cat_byte (str, cstr, strlen (cstr));
-}
-
-mstr_t *
-mstr_cat_mstr (mstr_t *str, const mstr_t *other)
-{
-  return mstr_cat_byte (str, mstr_data (other), mstr_len (other));
 }
 
 mstr_t *
@@ -352,24 +261,6 @@ mstr_cat_byte (mstr_t *str, const void *src, size_t n)
 
   set_len (str, len + n);
   return str;
-}
-
-mstr_t *
-mstr_insert_char (mstr_t *str, size_t pos, char ch)
-{
-  return mstr_insert_byte (str, pos, &ch, 1);
-}
-
-mstr_t *
-mstr_insert_cstr (mstr_t *str, size_t pos, const char *cstr)
-{
-  return mstr_insert_byte (str, pos, cstr, strlen (cstr));
-}
-
-mstr_t *
-mstr_insert_mstr (mstr_t *str, size_t pos, const mstr_t *other)
-{
-  return mstr_insert_byte (str, pos, mstr_data (other), mstr_len (other));
 }
 
 mstr_t *
@@ -404,24 +295,6 @@ mstr_insert_byte (mstr_t *str, size_t pos, const void *src, size_t n)
 
   set_len (str, len + n);
   return str;
-}
-
-mstr_t *
-mstr_assign_char (mstr_t *str, char ch)
-{
-  return mstr_assign_byte (str, &ch, 1);
-}
-
-mstr_t *
-mstr_assign_cstr (mstr_t *str, const char *cstr)
-{
-  return mstr_assign_byte (str, cstr, strlen (cstr));
-}
-
-mstr_t *
-mstr_assign_mstr (mstr_t *str, const mstr_t *other)
-{
-  return mstr_assign_byte (str, mstr_data (other), mstr_len (other));
 }
 
 mstr_t *
